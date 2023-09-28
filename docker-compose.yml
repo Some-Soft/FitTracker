@@ -19,3 +19,19 @@ services:
     environment:
       PGADMIN_DEFAULT_EMAIL: user@example.com
       PGADMIN_DEFAULT_PASSWORD: password
+
+  liquibase:
+    image: 'liquibase/liquibase:4.23'
+    container_name: 'liquibase'
+    volumes:
+      - ./database/changelog.yml:/liquibase/changelog.yml
+      - ./database/scripts:/liquibase/scripts
+      - ./database/liquibase.properties:/liquibase.properties
+    depends_on:
+      - database
+    command:
+      - '--defaults-file=/liquibase.properties'
+      - 'update'
+networks:
+  default:
+    name: fittracker
