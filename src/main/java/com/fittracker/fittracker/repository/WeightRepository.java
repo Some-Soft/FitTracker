@@ -4,7 +4,10 @@ import com.fittracker.fittracker.entity.Weight;
 import org.springframework.data.repository.CrudRepository;
 
 import java.time.LocalDate;
+import java.util.Optional;
 
 public interface WeightRepository extends CrudRepository<Weight,Integer> {
-    Weight findByDate(LocalDate date);
+    Boolean existsByDate(LocalDate date);
+
+    Optional<Weight> findByDate(LocalDate date);
 }

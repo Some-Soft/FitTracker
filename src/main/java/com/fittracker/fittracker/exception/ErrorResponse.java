@@ -2,9 +2,11 @@ package com.fittracker.fittracker.exception;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public record ErrorResponse(String field, String message) {
-    public static ErrorResponse withMessage(String message) {
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
+
+@JsonInclude(NON_NULL)
+record ErrorResponse(String field, String message) {
+    static ErrorResponse withMessage(String message) {
         return new ErrorResponse(null, message);
     }
 }

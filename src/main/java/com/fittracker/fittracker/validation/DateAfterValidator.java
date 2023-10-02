@@ -15,16 +15,6 @@ public class DateAfterValidator implements ConstraintValidator<DateAfter, LocalD
 
     @Override
     public boolean isValid(LocalDate localDate, ConstraintValidatorContext context) {
-        createCustomValidationMessage(context);
         return localDate == null || localDate.isAfter(startingDate);
     }
-
-    private void createCustomValidationMessage(ConstraintValidatorContext context) {
-        context.disableDefaultConstraintViolation();
-        context.buildConstraintViolationWithTemplate(
-                        "Date must be after " + startingDate)
-                .addConstraintViolation();
-    }
-
-
 }

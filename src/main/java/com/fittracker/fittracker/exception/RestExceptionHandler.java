@@ -1,82 +1,60 @@
 package com.fittracker.fittracker.exception;
 
-import com.fasterxml.jackson.databind.exc.InvalidFormatException;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.time.format.DateTimeParseException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 @RestControllerAdvice
-public class RestExceptionHandler {
+class RestExceptionHandler {
+
+    private final ErrorResponseMapper errorResponseMapper;
+
+    @Autowired
+    RestExceptionHandler(ErrorResponseMapper errorResponseMapper) {
+        this.errorResponseMapper = errorResponseMapper;
+    }
 
     @ExceptionHandler(WeightNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleWeightNotFoundException(WeightNotFoundException e) {
-        ErrorResponse errorResponse = ErrorResponse.withMessage(e.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    ResponseEntity<ErrorResponse> handleException(WeightNotFoundException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), NOT_FOUND);
+    }
+
+    @ExceptionHandler(WeightAlreadyExistsException.class)
+    ResponseEntity<ErrorResponse> handleException(WeightAlreadyExistsException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleArgumentNotValidException(MethodArgumentNotValidException e) {
-        ErrorResponse errorResponse = new ErrorResponse(getErrorFieldName(e),
-                getDefaultErrorMessageForException(e));
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    ResponseEntity<ErrorResponse> handleException(MethodArgumentNotValidException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException e) {
-        ErrorResponse errorResponse = new ErrorResponse(e.getName(),
-                "Please provide valid " + e.getName());
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    ResponseEntity<ErrorResponse> handleException(MethodArgumentTypeMismatchException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) throws Throwable {
-        System.out.println(e.getRootCause());
-        ErrorResponse errorResponse = new ErrorResponse("","");
-        setErrorFieldAndMessageForRootCause(errorResponse, e.getRootCause());
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    ResponseEntity<ErrorResponse> handleException(HttpMessageNotReadableException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
     }
 
-    private String getDefaultErrorMessageForException(MethodArgumentNotValidException e) {
-        if (e.getBindingResult().getFieldError() != null) {
-            return e.getBindingResult().getFieldError().getDefaultMessage();
-        } else {
-            return "";
-        }
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    ResponseEntity<ErrorResponse> handleException(MissingServletRequestParameterException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
     }
 
-    private String getErrorFieldName(MethodArgumentNotValidException e) {
-        String mess = e.getBindingResult().getFieldError().getField();
-
-        if (e.getBindingResult().getFieldError() != null) {
-            return e.getBindingResult().getFieldError().getField();
-        } else {
-            return "";
-        }
-    }
-
-    private void setErrorFieldAndMessageForRootCause(ErrorResponse errorResponse, Throwable e) {
-        if (e instanceof DateTimeParseException) {
-        } else if (e instanceof InvalidFormatException) {
-        } else {
-        }
-    }
-
-    private String extractNameFromPathReference(String pathReference) {
-        Pattern pattern = Pattern.compile("\\[\"(\\w+)\"\\]");
-        Matcher matcher = pattern.matcher(pathReference);
-
-        if (matcher.find()) {
-            return matcher.group(1);
-        } else {
-            return "Field not found";
-        }
+    @ExceptionHandler(Exception.class)
+    ResponseEntity<ErrorResponse> handleException(Exception e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), INTERNAL_SERVER_ERROR);
     }
 }

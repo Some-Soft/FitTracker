@@ -6,7 +6,6 @@ import com.fittracker.fittracker.service.WeightService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,6 +14,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+
+import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 public class WeightController {
@@ -27,15 +30,14 @@ public class WeightController {
     }
 
     @PostMapping("/weight")
-    @ResponseStatus(HttpStatus.CREATED)
+    @ResponseStatus(CREATED)
     public WeightResponse addWeight(@RequestBody @Valid WeightRequest weightRequest) {
         return weightService.save(weightRequest);
     }
 
     @GetMapping("/weight")
-    @ResponseStatus(HttpStatus.OK)
-    public WeightResponse getWeight(@RequestParam
-                                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    @ResponseStatus(OK)
+    public WeightResponse getWeight(@RequestParam @DateTimeFormat(iso = DATE) LocalDate date) {
         return weightService.findByDate(date);
     }
 }
