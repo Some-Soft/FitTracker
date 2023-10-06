@@ -33,6 +33,11 @@ class RestExceptionHandler {
         return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
     }
 
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    ResponseEntity<ErrorResponse> handleException(UserAlreadyExistsException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorResponse> handleException(MethodArgumentNotValidException e) {
         return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
