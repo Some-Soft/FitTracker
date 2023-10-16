@@ -23,7 +23,7 @@ public class Weight {
     public Weight() {
     }
 
-    public Weight(Double value, LocalDate date) {
+    public Weight(LocalDate date, Double value) {
         this.date = date;
         this.value = value;
     }
