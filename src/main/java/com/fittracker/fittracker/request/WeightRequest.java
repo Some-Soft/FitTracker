@@ -19,11 +19,11 @@ public record WeightRequest(
         @DateAfter(value = "2022-12-31", message = "Date must be after 2022")
         LocalDate date,
         @Min(value = 0, message = "Value must be positive")
-        @Max(value = 635, message = "Value must be less than 635")
+        @Max(value = 635, message = "Value must be less or equal to 635")
         @NotNull(message = "Value must not be null")
         Double value
 ) {
         public Weight toWeight() {
-                return new Weight(this.value, this.date);
+                return new Weight(this.date, this.value);
         }
 }

@@ -8,3 +8,9 @@ spring:
         url: jdbc:postgresql://localhost:5432/fittracker
         password: password
         username: user
+---
+spring:
+    profiles:
+        active: test
+    liquibase:
+        change-log: changelog.yml
