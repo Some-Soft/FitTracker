@@ -24,6 +24,6 @@ public record WeightRequest(
         Double value
 ) {
         public Weight toWeight() {
-                return new Weight(this.value, this.date);
+                return new Weight(this.date, this.value);
         }
 }

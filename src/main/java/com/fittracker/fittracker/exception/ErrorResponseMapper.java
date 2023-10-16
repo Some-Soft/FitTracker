@@ -12,7 +12,7 @@ import java.time.format.DateTimeParseException;
 import static java.util.Optional.ofNullable;
 
 @Component
-class ErrorResponseMapper {
+public class ErrorResponseMapper {
 
     private static final String DATE_FIELD_NAME = "date";
     private static final String INVALID_DATA_TYPE_MESSAGE = "Invalid data type";
