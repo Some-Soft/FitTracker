@@ -16,13 +16,14 @@ class WeightRequestTest {
 
     @InjectMocks
     WeightRequest weightRequest;
-    private final LocalDate TEST_DATE = LocalDate.of(2023,9,11);
+
     @Test
     void givenWeightRequest_shouldReturnWeight() {
-        Double TEST_VALUE = 55.6;
-        WeightRequest weightRequest = new WeightRequest(TEST_DATE, TEST_VALUE);
-        var expectedWeight = new Weight(TEST_DATE, TEST_VALUE);
-        var actualWeight = weightRequest.toWeight();
-        assertThat(actualWeight).usingRecursiveComparison().isEqualTo(expectedWeight);
+        Double testValue = 55.6;
+        LocalDate testDate = LocalDate.of(2023,9,11);
+        WeightRequest weightRequest = new WeightRequest(testDate, testValue);
+        var expectedWeight = new Weight(testDate, testValue);
+        var result = weightRequest.toWeight();
+        assertThat(result).usingRecursiveComparison().isEqualTo(expectedWeight);
     }
 }

@@ -33,25 +33,25 @@ public class WeightServiceTest {
     @InjectMocks
     private WeightService weightService;
 
-    private final LocalDate TEST_DATE = LocalDate.of(2023,10,10);
+    private static final LocalDate TEST_DATE = LocalDate.of(2023,10,10);
 
-    private final Double TEST_VALUE = 100.1;
+    private static final Double TEST_VALUE = 100.1;
 
-    private final Weight weight = new Weight(TEST_DATE, TEST_VALUE);
+    private static final Weight WEIGHT = new Weight(TEST_DATE, TEST_VALUE);
 
-    private final WeightRequest weightRequest = new WeightRequest(TEST_DATE,TEST_VALUE);
+    private static final WeightRequest WEIGHT_REQUEST = new WeightRequest(TEST_DATE,TEST_VALUE);
 
-    private final WeightResponse weightResponse = new WeightResponse(TEST_DATE,TEST_VALUE);
+    private static final WeightResponse WEIGHT_RESPONSE = new WeightResponse(TEST_DATE,TEST_VALUE);
 
     @Nested
     class FindByDate {
         @Test
         void givenDateFound_shouldReturnWeightResponse() {
-            when(weightRepository.findByDate(any())).thenReturn(of(weight));
+            when(weightRepository.findByDate(any())).thenReturn(of(WEIGHT));
 
             var result = weightService.findByDate(LocalDate.of(2023, 10, 10));
 
-            assertThat(result).isEqualTo(weightResponse);
+            assertThat(result).isEqualTo(WEIGHT_RESPONSE);
             verify(weightRepository).findByDate(LocalDate.of(2023, 10, 10));
             verifyNoMoreInteractions(weightRepository);
         }
@@ -75,11 +75,11 @@ public class WeightServiceTest {
         @Test
         void givenNoDateFound_shouldSaveAndReturnWeightResponse() {
             when(weightRepository.existsByDate(any())).thenReturn(false);
-            when(weightRepository.save(any())).thenReturn(weight);
+            when(weightRepository.save(any())).thenReturn(WEIGHT);
 
-            var result = weightService.save(weightRequest);
+            var result = weightService.save(WEIGHT_REQUEST);
 
-            assertThat(result).isEqualTo(weightResponse);
+            assertThat(result).isEqualTo(WEIGHT_RESPONSE);
             verify(weightRepository).existsByDate(TEST_DATE);
             verify(weightRepository).save(any());
             verifyNoMoreInteractions(weightRepository);
@@ -89,7 +89,7 @@ public class WeightServiceTest {
         void givenDateFound_shouldThrowException() {
             when(weightRepository.existsByDate(any())).thenReturn(true);
 
-            assertThatThrownBy(()-> weightService.save(weightRequest))
+            assertThatThrownBy(()-> weightService.save(WEIGHT_REQUEST))
                     .isInstanceOf(WeightAlreadyExistsException.class)
                     .hasMessageContaining("Weight already exists for date: 2023-10-10");
             verify(weightRepository).existsByDate(TEST_DATE);

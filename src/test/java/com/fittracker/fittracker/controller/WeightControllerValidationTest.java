@@ -16,7 +16,6 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.Random;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.params.provider.Arguments.of;
@@ -43,22 +42,21 @@ public class WeightControllerValidationTest {
     private MockMvc mockMvc;
 
     private static final String ENDPOINT = "/api/v1/weight";
-    private static final String PARAM_ENDPOINT = "/api/v1/weight%s";
 
     private static Stream<Arguments> getRequestTestDataProvider() {
         return Stream.of(
-                of(ENDPOINT, BAD_REQUEST, "{\"field\":\"date\",\"message\":\"Parameter must not be null\"}", never()),
-                of(String.format(PARAM_ENDPOINT, "?date=123"), BAD_REQUEST, "{\"field\":\"date\",\"message\":\"Invalid data type\"}", never()),
-                of(String.format(PARAM_ENDPOINT, "?date=2020-01-01"), OK, "", times(1)),
-                of(String.format(PARAM_ENDPOINT, "?date=2050-10-10"), OK, "", times(1))
+                of("", BAD_REQUEST, "{\"field\":\"date\",\"message\":\"Parameter must not be null\"}", never()),
+                of("?date=123", BAD_REQUEST, "{\"field\":\"date\",\"message\":\"Invalid data type\"}", never()),
+                of("?date=2020-01-01", OK, "", times(1)),
+                of("?date=2050-10-10", OK, "", times(1))
         );
     }
 
     @ParameterizedTest
     @MethodSource("getRequestTestDataProvider")
-    void givenGetUriRequest_shouldReturnResponse(String uri, HttpStatus responseStatus, String responseBody, VerificationMode numberOfServiceInvocations) throws Exception {
+    void givenGetUriRequest_shouldReturnResponse(String params, HttpStatus responseStatus, String responseBody, VerificationMode numberOfServiceInvocations) throws Exception {
         mockMvc
-                .perform(get(URI.create(uri)))
+                .perform(get(URI.create(ENDPOINT + params)))
                 .andExpect(status().is(responseStatus.value()))
                 .andExpect(content().string(responseBody));
 
@@ -68,40 +66,35 @@ public class WeightControllerValidationTest {
     private static Stream<Arguments> postRequestTestDataProvider() {
 
         return Stream.of(
-                of(ENDPOINT, CREATED, "{\"date\":\"2023-08-03\",\"value\":13.2}", "", times(1)),
-                of(ENDPOINT, CREATED, "{\"date\":\"" + LocalDate.now() + "\",\"value\":13.2}", "", times(1)),
-                of(ENDPOINT, BAD_REQUEST, "{\"date\":\"202-08-03\",\"value\":13.2}",
+                of(CREATED, "{\"date\":\"2023-08-03\",\"value\":13.2}", "", times(1)),
+                of(CREATED, "{\"date\":\"" + LocalDate.now() + "\",\"value\":13.2}", "", times(1)),
+                of(BAD_REQUEST, "{\"date\":\"202-08-03\",\"value\":13.2}",
                         "{\"field\":\"date\",\"message\":\"Date must be in format: YYYY-MM-DD\"}", never()),
-                of(ENDPOINT, BAD_REQUEST, "{\"date\":\"03-08-2023\",\"value\":13.2}",
+                of(BAD_REQUEST, "{\"date\":\"03-08-2023\",\"value\":13.2}",
                         "{\"field\":\"date\",\"message\":\"Date must be in format: YYYY-MM-DD\"}", never()),
-                of(ENDPOINT, BAD_REQUEST, "{\"value\":13.2}",
+                of(BAD_REQUEST, "{\"value\":13.2}",
                         "{\"field\":\"date\",\"message\":\"Date must not be null\"}", never()),
-                of(ENDPOINT, BAD_REQUEST, "{\"date\":\"" + randomDateInTheFuture() + "\",\"value\":13.2}",
+                of(BAD_REQUEST, "{\"date\":\"" + LocalDate.of(3000,1,1) + "\",\"value\":13.2}",
                         "{\"field\":\"date\",\"message\":\"Date cannot be in the future\"}", never()),
-                of(ENDPOINT, BAD_REQUEST, "{\"date\":\"2021-01-02\",\"value\":13.2}",
+                of(BAD_REQUEST, "{\"date\":\"2021-01-02\",\"value\":13.2}",
                         "{\"field\":\"date\",\"message\":\"Date must be after 2022\"}", never()),
-                of(ENDPOINT, BAD_REQUEST, "{\"date\":\"2022-12-31\",\"value\":13.2}",
+                of(BAD_REQUEST, "{\"date\":\"2022-12-31\",\"value\":13.2}",
                         "{\"field\":\"date\",\"message\":\"Date must be after 2022\"}", never()),
-                of(ENDPOINT, BAD_REQUEST, "{\"date\":\"2023-08-03\"}",
+                of(BAD_REQUEST, "{\"date\":\"2023-08-03\"}",
                         "{\"field\":\"value\",\"message\":\"Value must not be null\"}", never()),
-                of(ENDPOINT, BAD_REQUEST, "{\"date\":\"2023-08-03\",\"value\":-1}",
+                of(BAD_REQUEST, "{\"date\":\"2023-08-03\",\"value\":-1}",
                         "{\"field\":\"value\",\"message\":\"Value must be positive\"}", never()),
-                of(ENDPOINT, BAD_REQUEST, "{\"date\":\"2023-08-03\",\"value\":700}",
+                of(BAD_REQUEST, "{\"date\":\"2023-08-03\",\"value\":700}",
                         "{\"field\":\"value\",\"message\":\"Value must be less than 635\"}", never())
-                );
+        );
 
-    }
-
-    private static LocalDate randomDateInTheFuture() {
-        Random random = new Random();
-        return LocalDate.now().plusDays(1 + random.nextInt(365));
     }
 
     @ParameterizedTest
     @MethodSource("postRequestTestDataProvider")
-    void givenUriPostRequest_shouldReturnResponse(String uri, HttpStatus responseStatus, String requestBody, String responseBody, VerificationMode numberOfServiceInvocations) throws Exception {
+    void givenUriPostRequest_shouldReturnResponse(HttpStatus responseStatus, String requestBody, String responseBody, VerificationMode numberOfServiceInvocations) throws Exception {
         mockMvc
-                .perform(post(URI.create(uri))
+                .perform(post(URI.create(ENDPOINT))
                         .contentType("application/json")
                         .content(requestBody))
                 .andExpect(status().is(responseStatus.value()))
