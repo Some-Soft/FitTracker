@@ -22,8 +22,8 @@ class WeightRequestTest {
         Double testValue = 55.6;
         LocalDate testDate = LocalDate.of(2023,9,11);
         WeightRequest weightRequest = new WeightRequest(testDate, testValue);
-        var expectedWeight = new Weight(testDate, testValue);
+        var expectedResult = new Weight(testDate, testValue);
         var result = weightRequest.toWeight();
-        assertThat(result).usingRecursiveComparison().isEqualTo(expectedWeight);
+        assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
     }
 }

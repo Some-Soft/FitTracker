@@ -9,6 +9,8 @@ import com.fittracker.fittracker.response.WeightResponse;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -72,6 +74,9 @@ public class WeightServiceTest {
 
     @Nested
     class Save {
+
+        @Captor
+        ArgumentCaptor<Weight> weightCaptor;
         @Test
         void givenNoDateFound_shouldSaveAndReturnWeightResponse() {
             when(weightRepository.existsByDate(any())).thenReturn(false);
@@ -81,7 +86,9 @@ public class WeightServiceTest {
 
             assertThat(result).isEqualTo(WEIGHT_RESPONSE);
             verify(weightRepository).existsByDate(TEST_DATE);
-            verify(weightRepository).save(any());
+            verify(weightRepository).save(weightCaptor.capture());
+
+            assertThat(weightCaptor.getValue()).usingRecursiveComparison().isEqualTo(WEIGHT);
             verifyNoMoreInteractions(weightRepository);
 
         }
