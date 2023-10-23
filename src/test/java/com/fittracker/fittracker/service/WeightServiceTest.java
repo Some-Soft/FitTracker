@@ -29,21 +29,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class WeightServiceTest {
 
+    private static final LocalDate TEST_DATE = LocalDate.of(2023,10,10);
+    private static final Double TEST_VALUE = 100.1;
+    private static final Weight WEIGHT = new Weight(TEST_DATE, TEST_VALUE);
+    private static final WeightRequest WEIGHT_REQUEST = new WeightRequest(TEST_DATE,TEST_VALUE);
+    private static final WeightResponse WEIGHT_RESPONSE = new WeightResponse(TEST_DATE,TEST_VALUE);
+
     @Mock
     private WeightRepository weightRepository;
-
     @InjectMocks
     private WeightService weightService;
-
-    private static final LocalDate TEST_DATE = LocalDate.of(2023,10,10);
-
-    private static final Double TEST_VALUE = 100.1;
-
-    private static final Weight WEIGHT = new Weight(TEST_DATE, TEST_VALUE);
-
-    private static final WeightRequest WEIGHT_REQUEST = new WeightRequest(TEST_DATE,TEST_VALUE);
-
-    private static final WeightResponse WEIGHT_RESPONSE = new WeightResponse(TEST_DATE,TEST_VALUE);
 
     @Nested
     class FindByDate {
@@ -102,6 +97,5 @@ public class WeightServiceTest {
             verify(weightRepository).existsByDate(TEST_DATE);
             verifyNoMoreInteractions(weightRepository);
         }
-        
     }
 }
