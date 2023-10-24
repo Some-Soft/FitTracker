@@ -93,6 +93,34 @@ public class WeightControllerValidationTest {
             verifyNoInteractions(weightService);
         }
 
+        @ParameterizedTest
+        @CsvSource({
+                "-1, Value must be positive",
+                "700, Value must be less or equal to 635"
+        })
+        void givenPostRequest_shouldReturnValueErrorMessage(String value, String message) throws Exception {
+            mockMvc
+                    .perform(post(URI.create(ENDPOINT))
+                            .contentType(APPLICATION_JSON)
+                            .content(format("{\"date\":\"2023-08-03\",\"value\": %s}", value)))
+                    .andExpect(status().is(BAD_REQUEST.value()))
+                    .andExpect(content().string(format("{\"field\":\"value\",\"message\":\"%s\"}", message)));
+
+            verifyNoInteractions(weightService);
+        }
+
+        @Test
+        void givenPostRequestWithNullValue_shouldReturnValueErrorMessage() throws Exception {
+            mockMvc
+                    .perform(post(URI.create(ENDPOINT))
+                            .contentType(APPLICATION_JSON)
+                            .content("{\"date\":\"2023-08-03\"}"))
+                    .andExpect(status().is(BAD_REQUEST.value()))
+                    .andExpect(content().string("{\"field\":\"value\",\"message\":\"Value must not be null\"}"));
+
+            verifyNoInteractions(weightService);
+        }
+
         @Test
         public void givenPostRequestWithValidDate_shouldReturnCreated() throws Exception {
             mockMvc
@@ -128,16 +156,6 @@ public class WeightControllerValidationTest {
 
             verifyNoInteractions(weightService);
         }
-
-
-
-        //TODO: similar tests for value
-//    of(BAD_REQUEST, "{\"date\":\"2023-08-03\"}",
-//            "{\"field\":\"value\",\"message\":\"Value must not be null\"}", never()),
-//    of(BAD_REQUEST, "{\"date\":\"2023-08-03\",\"value\":-1}",
-//            "{\"field\":\"value\",\"message\":\"Value must be positive\"}", never()),
-//    of(BAD_REQUEST, "{\"date\":\"2023-08-03\",\"value\":700}",
-//            "{\"field\":\"value\",\"message\":\"Value must be less than 635\"}", never())
 
     }
 }

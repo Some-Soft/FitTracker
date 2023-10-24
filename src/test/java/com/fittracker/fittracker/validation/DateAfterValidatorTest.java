@@ -31,15 +31,13 @@ class DateAfterValidatorTest {
 
     @Test
     void givenDateAfterStartingDate_shouldReturnTrue() {
-        //TODO: use LocalDate.of
-        LocalDate testDate = LocalDate.parse("2023-01-01");
+        LocalDate testDate = LocalDate.of(2023,1,1);
         assertTrue(dateAfterValidator.isValid(testDate, null));
     }
 
     @Test
     void givenDateEqualToStartingDate_shouldReturnFalse() {
-        //TODO: use LocalDate.of
-        LocalDate testDate = LocalDate.parse("2022-12-31");
+        LocalDate testDate = LocalDate.of(2022,12,31);
         assertFalse(dateAfterValidator.isValid(testDate, null));
     }
 }
