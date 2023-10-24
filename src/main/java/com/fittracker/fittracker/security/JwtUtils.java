@@ -18,17 +18,18 @@ public class JwtUtils {
     //TODO: move to config and inject via constructor
     private static final long TOKEN_EXPIRATION_PERIOD_MINUTES = 60;
 
-    private final long tokenExpirationPeriodMinutes;
+    private final long tokenExpirationPeriodMilliseconds;
     private final SecretKey secretKey;
 
     public JwtUtils() {
         this.secretKey = Keys.hmacShaKeyFor(SECRET.getBytes());
-        this.tokenExpirationPeriodMinutes = TOKEN_EXPIRATION_PERIOD_MINUTES;
+        this.tokenExpirationPeriodMilliseconds = TOKEN_EXPIRATION_PERIOD_MINUTES * MILLISECONDS_PER_MINUTE;
     }
 
+    //TODO: add unit test
     public String generateToken(Authentication authentication) {
         Date dateNow = new Date();
-        Date expirationDate = new Date(dateNow.getTime() + tokenExpirationPeriodMinutes * MILLISECONDS_PER_MINUTE);
+        Date expirationDate = new Date(dateNow.getTime() + tokenExpirationPeriodMilliseconds);
 
         return Jwts.builder()
                 .subject(authentication.getName())
@@ -38,6 +39,7 @@ public class JwtUtils {
                 .compact();
     }
 
+    //TODO: add unit test
     public String getUsernameFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
@@ -47,6 +49,7 @@ public class JwtUtils {
                 .getSubject();
     }
 
+    //TODO: add unit test
     public boolean isTokenValid(String token) {
         try {
             Jwts.parser()

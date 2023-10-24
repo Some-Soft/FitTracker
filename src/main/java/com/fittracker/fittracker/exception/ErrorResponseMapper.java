@@ -29,6 +29,10 @@ public class ErrorResponseMapper {
         return ErrorResponse.withMessage(e.getMessage());
     }
 
+    ErrorResponse map(UserAlreadyExistsException e) {
+        return ErrorResponse.withMessage(e.getMessage());
+    }
+
     ErrorResponse map(MethodArgumentNotValidException e) {
         return ofNullable(e.getBindingResult().getFieldError())
                 .map(fieldError -> new ErrorResponse(fieldError.getField(), fieldError.getDefaultMessage()))

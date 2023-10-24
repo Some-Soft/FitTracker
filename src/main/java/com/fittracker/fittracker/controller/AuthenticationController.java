@@ -6,17 +6,22 @@ import com.fittracker.fittracker.response.LoginResponse;
 import com.fittracker.fittracker.response.RegisterResponse;
 import com.fittracker.fittracker.service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthenticationController {
 
+    //TODO: add validation tests (RegisterRequest and LoginRequest)
+    //TODO: add register integration tests: username exists, email exists, happy path
+    //TODO: add login integration tests: nonexistent user, wrong password, happy path
     private final AuthenticationService authenticationService;
 
     @Autowired
@@ -26,12 +31,11 @@ public class AuthenticationController {
 
     @PostMapping("register")
     public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest) {
-        //TODO: handle UserAlreadyExistsException
-        return new ResponseEntity<>(authenticationService.register(registerRequest), HttpStatus.CREATED);
+        return new ResponseEntity<>(authenticationService.register(registerRequest), CREATED);
     }
 
     @PostMapping("login")
     public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
-        return new ResponseEntity<>(authenticationService.login(loginRequest), HttpStatus.OK);
+        return new ResponseEntity<>(authenticationService.login(loginRequest), OK);
     }
 }

@@ -32,19 +32,18 @@ public class AuthenticationService {
         this.userRepository = userRepository;
     }
 
+    //TODO: add unit test
     public RegisterResponse register(RegisterRequest registerRequest) {
         if (userRepository.existsByUsernameOrEmail(registerRequest.username(), registerRequest.email())) {
-            throw new UserAlreadyExistsException();
+            throw new UserAlreadyExistsException(registerRequest);
         }
-
-        User user = new User();
-        user.setUsername(registerRequest.username());
-        user.setEmail(registerRequest.email());
+        User user = registerRequest.toUser();
         user.setPassword(passwordEncoder.encode(registerRequest.username()));
 
         return RegisterResponse.fromUser(userRepository.save(user));
     }
 
+    //TODO: add unit test
     public LoginResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 loginRequest.username(), loginRequest.password()));
