@@ -10,18 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.net.URI;
 import java.time.LocalDate;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -30,6 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
+@Profile("test")
 public class WeightControllerIntegrationTest {
 
     @Autowired
@@ -40,30 +39,17 @@ public class WeightControllerIntegrationTest {
 
     private final static String ENDPOINT = "/api/v1/weight";
 
-    @Container
     @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16")
-            .withUsername("testUser")
-            .withPassword("testPassword")
-            .withDatabaseName("testDatabase");
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
 
     @BeforeAll
     static void setUp() {
-        System.setProperty("spring.config.name", "test-application");
         postgres.start();
     }
 
     @BeforeEach
     void beforeSetUp() {
         weightRepository.deleteAll();
-    }
-
-    @Test
-    void testConnection() {
-        assertTrue(postgres.isRunning());
-        assertEquals("testUser", postgres.getUsername());
-        assertEquals("testPassword", postgres.getPassword());
-        assertEquals("testDatabase", postgres.getDatabaseName());
     }
 
     @Nested
@@ -113,7 +99,6 @@ public class WeightControllerIntegrationTest {
             mockMvc.perform(get(URI.create(ENDPOINT + "?date=2023-08-03")))
                     .andExpect(status().isOk())
                     .andExpect(content().string("{\"date\":\"2023-08-03\",\"value\":13.2}"));
-
         }
 
         @Test
