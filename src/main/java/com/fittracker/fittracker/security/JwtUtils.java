@@ -1,5 +1,6 @@
 package com.fittracker.fittracker.security;
 
+import com.fittracker.fittracker.config.JwtConfig;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -12,18 +13,14 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    private static final long MILLISECONDS_PER_MINUTE = 60_000;
-    //TODO: move to config and inject via constructor
-    private static final String SECRET = "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem";
-    //TODO: move to config and inject via constructor
-    private static final long TOKEN_EXPIRATION_PERIOD_MINUTES = 60;
+    private static final int MILLISECONDS_PER_MINUTE = 60_000;
 
-    private final long tokenExpirationPeriodMilliseconds;
+    private final int tokenExpirationPeriodMilliseconds;
     private final SecretKey secretKey;
 
-    public JwtUtils() {
-        this.secretKey = Keys.hmacShaKeyFor(SECRET.getBytes());
-        this.tokenExpirationPeriodMilliseconds = TOKEN_EXPIRATION_PERIOD_MINUTES * MILLISECONDS_PER_MINUTE;
+    public JwtUtils(JwtConfig jwtConfig) {
+        this.secretKey = Keys.hmacShaKeyFor(jwtConfig.secret().getBytes());
+        this.tokenExpirationPeriodMilliseconds = jwtConfig.tokenExpirationPeriodMinutes() * MILLISECONDS_PER_MINUTE;
     }
 
     //TODO: add unit test
