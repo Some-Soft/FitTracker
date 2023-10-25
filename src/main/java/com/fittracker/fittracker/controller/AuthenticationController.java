@@ -5,6 +5,7 @@ import com.fittracker.fittracker.request.RegisterRequest;
 import com.fittracker.fittracker.response.LoginResponse;
 import com.fittracker.fittracker.response.RegisterResponse;
 import com.fittracker.fittracker.service.AuthenticationService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,12 +31,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("register")
-    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<RegisterResponse> register(@RequestBody @Valid RegisterRequest registerRequest) {
         return new ResponseEntity<>(authenticationService.register(registerRequest), CREATED);
     }
 
     @PostMapping("login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<LoginResponse> login(@RequestBody @Valid LoginRequest loginRequest) {
         return new ResponseEntity<>(authenticationService.login(loginRequest), OK);
     }
 }

@@ -1,5 +1,10 @@
 package com.fittracker.fittracker.request;
 
-//TODO: add validation: username, password - not null
-public record LoginRequest(String username, String password) {
+import jakarta.validation.constraints.NotNull;
+
+public record LoginRequest(
+        @NotNull(message = "Username must not be null")
+        String username,
+        @NotNull(message = "Password must not be null")
+        String password) {
 }

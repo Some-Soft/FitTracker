@@ -6,3 +6,6 @@ databaseChangeLog:
         - sqlFile:
             relativeToChangelogFile: true
             path: scripts/001-FIT-3-create_weights_table.sql
+        - sqlFile:
+            relativeToChangelogFile: true
+            path: scripts/002-FIT-11-create_users_table_connect_it_with_weights.sql
