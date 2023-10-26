@@ -1,10 +1,17 @@
 package com.fittracker.fittracker.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fittracker.fittracker.config.JwtConfig;
+import com.fittracker.fittracker.exception.ErrorResponse;
 import com.fittracker.fittracker.exception.ErrorResponseMapper;
+import com.fittracker.fittracker.request.RegisterRequest;
+import com.fittracker.fittracker.security.JwtAuthenticationFilter;
+import com.fittracker.fittracker.security.JwtUtils;
 import com.fittracker.fittracker.service.AuthenticationService;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -12,15 +19,15 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URI;
+import java.util.List;
 
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(WeightController.class)
-@Import(ErrorResponseMapper.class)
+@WebMvcTest(AuthenticationController.class)
+@Import({ErrorResponseMapper.class, ObjectMapper.class, JwtUtils.class, JwtAuthenticationFilter.class, JwtConfig.class})
 class AuthenticationControllerValidationTest {
 
     private static final String ENDPOINT = "/auth";
@@ -30,28 +37,36 @@ class AuthenticationControllerValidationTest {
     @Autowired
     private MockMvc mockMvc;
 
+    private final ObjectMapper mapper = new ObjectMapper();
+
     @Nested
     class Register {
 
         @ParameterizedTest
-        @CsvSource({
-                "",
-                ""
-        })
-        void givenRegisterRequestWithNullField_shouldReturnErrorResponse(String field) {
-            mockMvc
+        @MethodSource("nullFieldTestDataProvider")
+        void givenRegisterRequestWithNullField_shouldReturnErrorResponse(RegisterRequest registerRequest) throws Exception {
+
+            var requestBodyString = mapper.writeValueAsString(registerRequest);
+
+            var responseString = mockMvc
                     .perform(post(URI.create(ENDPOINT + "/register"))
                             .contentType(APPLICATION_JSON)
-                            .content(format("{\"date\":\"2023-08-03\",\"value\": %s}", value)))
+                            .content(requestBodyString))
                     .andExpect(status().is(BAD_REQUEST.value()))
-                    .andExpect(content().string(format("{\"field\":\"value\",\"message\":\"%s\"}", message)));
+                    .andReturn().getResponse().getContentAsString();
 
-            verifyNoInteractions(weightService);
+            var response = mapper.readValue(responseString, ErrorResponse.class);
+
+//            verifyNoInteractions(weightService);
         }
 
-        private String generate
-    }
+        static List<RegisterRequest> nullFieldTestDataProvider (){
+            return List.of(new RegisterRequest(null, "user@example.com", "password"),
+                    new RegisterRequest("user", null, "password"),
+                    new RegisterRequest("user", "user@example.com", null));
+        }
 
+    }
 
 
     @Nested
