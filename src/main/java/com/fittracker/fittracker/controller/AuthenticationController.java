@@ -20,6 +20,7 @@ import static org.springframework.http.HttpStatus.OK;
 @RequestMapping("/auth")
 public class AuthenticationController {
 
+    //TODO: add validation tests (RegisterRequest and LoginRequest)
     //TODO: add register integration tests: username exists, email exists, happy path
     //TODO: add login integration tests: nonexistent user, wrong password, happy path
     private final AuthenticationService authenticationService;

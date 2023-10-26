@@ -14,9 +14,9 @@ import java.util.Date;
 @Component
 public class JwtUtils {
 
-    public static final long MILLISECONDS_PER_MINUTE = 60_000;
+    private static final int MILLISECONDS_PER_MINUTE = 60_000;
 
-    private final long tokenExpirationPeriodMilliseconds;
+    private final int tokenExpirationPeriodMilliseconds;
     private final SecretKey secretKey;
 
     @Autowired
