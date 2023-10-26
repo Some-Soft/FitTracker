@@ -38,7 +38,7 @@ public class AuthenticationService {
             throw new UserAlreadyExistsException(registerRequest);
         }
         User user = registerRequest.toUser();
-        user.setPassword(passwordEncoder.encode(registerRequest.username()));
+        user.setPassword(passwordEncoder.encode(registerRequest.password()));
 
         return RegisterResponse.fromUser(userRepository.save(user));
     }

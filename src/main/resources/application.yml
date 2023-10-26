@@ -8,12 +8,13 @@ spring:
         url: jdbc:postgresql://localhost:5432/fittracker
         password: password
         username: user
+    profiles:
+        active: local
 
 security:
     jwt:
         secret: "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem"
         tokenExpirationPeriodMinutes: 60
-
 ---
 spring:
     profiles:
