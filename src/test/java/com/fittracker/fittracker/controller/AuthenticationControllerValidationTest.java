@@ -1,18 +1,15 @@
 package com.fittracker.fittracker.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fittracker.fittracker.config.JwtConfig;
 import com.fittracker.fittracker.exception.ErrorResponse;
 import com.fittracker.fittracker.exception.ErrorResponseMapper;
 import com.fittracker.fittracker.request.RegisterRequest;
-import com.fittracker.fittracker.security.JwtAuthenticationFilter;
-import com.fittracker.fittracker.security.JwtUtils;
 import com.fittracker.fittracker.service.AuthenticationService;
 import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
@@ -27,10 +24,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(AuthenticationController.class)
-@Import({ErrorResponseMapper.class, ObjectMapper.class, JwtUtils.class, JwtAuthenticationFilter.class, JwtConfig.class})
-class AuthenticationControllerValidationTest {
+@Import({ErrorResponseMapper.class, ObjectMapper.class})
+@AutoConfigureMockMvc(addFilters = false)
+class AuthenticationControllerValidationTest extends DisabledSecurityTest{
 
     private static final String ENDPOINT = "/auth";
+
+
     @MockBean
     private AuthenticationService authenticationService;
 
@@ -57,7 +57,6 @@ class AuthenticationControllerValidationTest {
 
             var response = mapper.readValue(responseString, ErrorResponse.class);
 
-//            verifyNoInteractions(weightService);
         }
 
         static List<RegisterRequest> nullFieldTestDataProvider (){

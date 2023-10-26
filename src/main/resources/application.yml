@@ -21,3 +21,6 @@ spring:
         active: test
     liquibase:
         change-log: changelog.yml
+    jwt:
+        secret: "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem"
+        tokenExpirationPeriodMinutes: 60
