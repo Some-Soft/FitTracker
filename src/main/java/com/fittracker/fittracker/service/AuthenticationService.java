@@ -32,7 +32,6 @@ public class AuthenticationService {
         this.userRepository = userRepository;
     }
 
-    //TODO: add unit test
     public RegisterResponse register(RegisterRequest registerRequest) {
         if (userRepository.existsByUsernameOrEmail(registerRequest.username(), registerRequest.email())) {
             throw new UserAlreadyExistsException(registerRequest);
@@ -43,7 +42,6 @@ public class AuthenticationService {
         return RegisterResponse.fromUser(userRepository.save(user));
     }
 
-    //TODO: add unit test
     public LoginResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 loginRequest.username(), loginRequest.password()));

@@ -52,7 +52,6 @@ public class WeightControllerIntegrationTest {
     @BeforeAll
     static void setUp() {
         postgres.start();
-
     }
 
     @BeforeEach

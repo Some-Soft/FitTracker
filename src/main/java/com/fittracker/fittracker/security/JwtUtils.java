@@ -25,7 +25,7 @@ public class JwtUtils {
         this.tokenExpirationPeriodMilliseconds = jwtConfig.tokenExpirationPeriodMinutes() * MILLISECONDS_PER_MINUTE;
     }
 
-    //TODO: add unit test
+
     public String generateToken(Authentication authentication) {
         Date dateNow = new Date();
         Date expirationDate = new Date(dateNow.getTime() + tokenExpirationPeriodMilliseconds);
@@ -38,7 +38,6 @@ public class JwtUtils {
                 .compact();
     }
 
-    //TODO: add unit test
     public String getUsernameFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
@@ -48,7 +47,6 @@ public class JwtUtils {
                 .getSubject();
     }
 
-    //TODO: add unit test
     public boolean isTokenValid(String token) {
         try {
             Jwts.parser()

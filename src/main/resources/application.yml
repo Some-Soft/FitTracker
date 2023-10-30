@@ -14,7 +14,7 @@ spring:
 security:
     jwt:
         secret: "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem"
-        tokenExpirationPeriodMinutes: 2000000000
+        tokenExpirationPeriodMinutes: 60
 ---
 spring:
     profiles:
@@ -22,5 +22,5 @@ spring:
     liquibase:
         change-log: changelog.yml
     jwt:
-        secret: "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem"
+        secret: "KpQ2DTrUzvqMSkWPG4VAiBkib432jL5MtxyHcqhr5f9rmGwV1XctLGjPxdtLGPDEXkPUYVN7xxzwYsld"
         tokenExpirationPeriodMinutes: 60
