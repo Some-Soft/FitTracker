@@ -14,7 +14,7 @@ spring:
 security:
     jwt:
         secret: "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem"
-        tokenExpirationPeriodMinutes: 2000000000
+        tokenExpirationPeriodMinutes: 60
 ---
 spring:
     profiles:
@@ -23,4 +23,4 @@ spring:
         change-log: changelog.yml
     jwt:
         secret: "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem"
-        tokenExpirationPeriodMinutes: 60
+        tokenExpirationPeriodMinutes: 2000000000

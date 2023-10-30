@@ -37,9 +37,9 @@ docker-compose up -d
     ```
     ./mvnw clean install
     ``` 
-2. Run **FitTrackerApplication.java** in your IDE or use the command:
+2. Run **FitTrackerApplication.java** in your IDE (with active profile `local`) or use the command:
     ```
-    ./mvnw spring-boot:run
+    ./mvnw spring-boot:run -Dspring.profiles.active=local
     ``` 
 3. Navigate to http://localhost:8080/health, you should see:
     ```

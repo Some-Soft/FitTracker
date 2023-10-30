@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fittracker.fittracker.exception.ErrorResponse;
 import com.fittracker.fittracker.exception.ErrorResponseMapper;
 import com.fittracker.fittracker.request.RegisterRequest;
+import com.fittracker.fittracker.security.JwtAuthenticationFilter;
 import com.fittracker.fittracker.service.AuthenticationService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -24,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.of;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
@@ -31,10 +34,11 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(AuthenticationController.class)
+@WebMvcTest(controllers = AuthenticationController.class, excludeFilters = {
+        @ComponentScan.Filter(type = ASSIGNABLE_TYPE, value = JwtAuthenticationFilter.class)})
 @Import({ErrorResponseMapper.class, ObjectMapper.class})
 @AutoConfigureMockMvc(addFilters = false)
-class AuthenticationControllerValidationTest extends DisabledSecurityTest {
+class AuthenticationControllerValidationTest {
 
     private static final String ENDPOINT = "/auth";
 

@@ -8,7 +8,7 @@ public class Configuration {
 
 
     @Bean
-    static JwtConfig jwtConfig(@Value("${security.jwt.secret}") String secret,
+    public JwtConfig jwtConfig(@Value("${security.jwt.secret}") String secret,
                                @Value("${security.jwt.tokenExpirationPeriodMinutes}") String tokenExpirationPeriodMinutes) {
         return new JwtConfig(secret, Integer.parseInt(tokenExpirationPeriodMinutes));
     }
