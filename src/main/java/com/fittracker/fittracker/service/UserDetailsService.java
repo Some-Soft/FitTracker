@@ -14,6 +14,8 @@ import static java.lang.String.format;
 @Service
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
 
+    private static final String EXCEPTION_MESSAGE_TEMPLATE = "Username %s not found";
+
     private final UserRepository userRepository;
 
     @Autowired
@@ -24,7 +26,7 @@ public class UserDetailsService implements org.springframework.security.core.use
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(format("User %s not found", username)));
+                .orElseThrow(() -> new UsernameNotFoundException(format(EXCEPTION_MESSAGE_TEMPLATE, username)));
 
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(), user.getPassword(), List.of());

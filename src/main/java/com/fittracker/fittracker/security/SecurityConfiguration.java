@@ -18,8 +18,9 @@ import static org.springframework.security.config.http.SessionCreationPolicy.STA
 
 @Configuration
 @EnableWebSecurity
-//TBC: create integration test to check if all endpoints are secured
 public class SecurityConfiguration {
+
+    private static final String[] PERMIT_ALL_ENDPOINTS = new String[]{"/auth/register", "/auth/login"};
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -38,7 +39,7 @@ public class SecurityConfiguration {
                 .exceptionHandling(customizer -> customizer.authenticationEntryPoint(jwtAuthenticationEntryPoint))
                 .sessionManagement(customizer -> customizer.sessionCreationPolicy(STATELESS))
                 .authorizeHttpRequests(customizer -> customizer
-                        .requestMatchers("/auth/register", "/auth/login").permitAll()
+                        .requestMatchers(PERMIT_ALL_ENDPOINTS).permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(withDefaults())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
