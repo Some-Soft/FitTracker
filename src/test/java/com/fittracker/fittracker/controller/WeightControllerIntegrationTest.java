@@ -4,38 +4,26 @@ import com.fittracker.fittracker.entity.User;
 import com.fittracker.fittracker.entity.Weight;
 import com.fittracker.fittracker.repository.UserRepository;
 import com.fittracker.fittracker.repository.WeightRepository;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@Testcontainers
-@AutoConfigureMockMvc
-@ActiveProfiles("test")
-public class WeightControllerIntegrationTest {
-
-    @Autowired
-    MockMvc mockMvc;
+public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     WeightRepository weightRepository;
@@ -46,12 +34,14 @@ public class WeightControllerIntegrationTest {
 
     private final static String TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNjk4NDAxMDA0LCJleHAiOjU3MDcwMTQ3NTR9.2D2rHl7L3Jpy1BxpZ8krRNFiGK0t6VGthS-9gQRVTOX9nM4QTj0m17X2RQspOnqTGaxY5rnCUBHOsyYWDaQ2cg";
 
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+    @Override
+    protected List<HttpMethod> getProtectedHttpMethods() {
+        return List.of(GET, POST);
+    }
 
-    @BeforeAll
-    static void setUp() {
-        postgres.start();
+    @Override
+    protected String getEndpoint() {
+        return ENDPOINT;
     }
 
     @BeforeEach
