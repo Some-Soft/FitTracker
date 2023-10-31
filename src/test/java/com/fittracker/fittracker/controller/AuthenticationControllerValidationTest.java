@@ -3,6 +3,7 @@ package com.fittracker.fittracker.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fittracker.fittracker.exception.ErrorResponse;
 import com.fittracker.fittracker.exception.ErrorResponseMapper;
+import com.fittracker.fittracker.request.LoginRequest;
 import com.fittracker.fittracker.request.RegisterRequest;
 import com.fittracker.fittracker.security.JwtAuthenticationFilter;
 import com.fittracker.fittracker.service.AuthenticationService;
@@ -27,8 +28,8 @@ import static org.junit.jupiter.params.provider.Arguments.of;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -56,12 +57,12 @@ class AuthenticationControllerValidationTest {
         @Test
         void givenValidRegisterRequest_shouldReturnRegisterResponse() throws Exception {
 
-            RegisterRequest registerRequest = new RegisterRequest("user","user@example.com","password");
+            RegisterRequest registerRequest = new RegisterRequest("user", "user@example.com", "password");
             mockMvc
                     .perform(post(URI.create(ENDPOINT + "/register"))
                             .contentType("application/json")
                             .content(mapper.writeValueAsString(registerRequest)))
-                    .andExpect(status().is(CREATED.value()))
+                    .andExpect(status().isCreated())
                     .andExpect(content().string(""));
 
             verify(authenticationService).register(registerRequest);
@@ -97,12 +98,11 @@ class AuthenticationControllerValidationTest {
         @ParameterizedTest
         @MethodSource("incorrectLengthTestDataProvider")
         void givenRegisterRequestWithIncorrectLengthField_shouldReturnErrorResponse(RegisterRequest registerRequest, String field, String expectedMessage) throws Exception {
-            var requestBodyString = mapper.writeValueAsString(registerRequest);
 
             var responseString = mockMvc
                     .perform(post(URI.create(ENDPOINT + "/register"))
                             .contentType(APPLICATION_JSON)
-                            .content(requestBodyString))
+                            .content(mapper.writeValueAsString(registerRequest)))
                     .andExpect(status().is(BAD_REQUEST.value()))
                     .andReturn().getResponse().getContentAsString();
 
@@ -116,12 +116,12 @@ class AuthenticationControllerValidationTest {
         private static Stream<Arguments> incorrectLengthTestDataProvider() {
             String s = "a";
             return Stream.of(
-                    of(new RegisterRequest("a", "user@example.com", "password"),"username","Username must be between 3 and 64 characters"),
-                    of(new RegisterRequest(s.repeat(65), "user@example.com", "password"),"username","Username must be between 3 and 64 characters"),
-                    of(new RegisterRequest("user", "a", "password"),"email","Email must be between 3 and 254 characters"),
-                    of(new RegisterRequest("user", s.repeat(255), "password"),"email","Email must be between 3 and 254 characters"),
-                    of(new RegisterRequest("user", "user@example.com", "a"),"password","Password must be between 3 and 30 characters"),
-                    of(new RegisterRequest("user", "user@example.com", s.repeat(31)),"password","Password must be between 3 and 30 characters")
+                    of(new RegisterRequest("a", "user@example.com", "password"), "username", "Username must be between 3 and 64 characters"),
+                    of(new RegisterRequest(s.repeat(65), "user@example.com", "password"), "username", "Username must be between 3 and 64 characters"),
+                    of(new RegisterRequest("user", "a", "password"), "email", "Email must be between 3 and 254 characters"),
+                    of(new RegisterRequest("user", s.repeat(255), "password"), "email", "Email must be between 3 and 254 characters"),
+                    of(new RegisterRequest("user", "user@example.com", "a"), "password", "Password must be between 3 and 30 characters"),
+                    of(new RegisterRequest("user", "user@example.com", s.repeat(31)), "password", "Password must be between 3 and 30 characters")
             );
         }
 
@@ -130,6 +130,45 @@ class AuthenticationControllerValidationTest {
 
     @Nested
     class Login {
+
+        @Test
+        void givenValidLoginRequest_shouldReturnLoginResponse() throws Exception {
+            LoginRequest loginRequest = new LoginRequest("user", "password");
+
+            mockMvc
+                    .perform(post(URI.create(ENDPOINT + "/login"))
+                            .contentType("application/json")
+                            .content(mapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(""));
+
+            verify(authenticationService).login(loginRequest);
+            verifyNoMoreInteractions(authenticationService);
+        }
+
+        @ParameterizedTest
+        @MethodSource("nullFieldsTestDataProvider")
+        void givenLoginRequestWithNullField_shouldReturnErrorResponse(LoginRequest loginRequest, String field, String expectedMessage) throws Exception {
+            var responseString = mockMvc
+                    .perform(post(URI.create(ENDPOINT + "/login"))
+                            .contentType("application/json")
+                            .content(mapper.writeValueAsString(loginRequest)))
+                    .andExpect(status().isBadRequest())
+                    .andReturn().getResponse().getContentAsString();
+
+            var expected = new ErrorResponse(field,expectedMessage);
+            var response = mapper.readValue(responseString, ErrorResponse.class);
+
+            assertThat(response).isEqualTo(expected);
+            verifyNoInteractions(authenticationService);
+        }
+
+        private static Stream<Arguments> nullFieldsTestDataProvider() {
+            return Stream.of(
+                    of(new LoginRequest(null, "password"), "username", "Username must not be null"),
+                    of(new LoginRequest("user", null), "password", "Password must not be null")
+            );
+        }
 
 
     }
