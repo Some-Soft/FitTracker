@@ -35,7 +35,7 @@ docker-compose up -d
 
 1. Build the project:
     ```
-    ./mvnw clean install
+    ./mvnw clean install -DskipTests
     ``` 
 2. Run **FitTrackerApplication.java** in your IDE or use the command:
     ```
@@ -46,4 +46,19 @@ docker-compose up -d
     {
         "status": "UP"
     }
-    ``` 
+    ```
+
+### Docker
+
+FitTracker is containerized, use the command to build a docker image:
+
+`docker build -t fittracker .`
+
+In order to run the app in a container you can use docker compose:
+```
+docker-compose up -d
+```
+
+or run the container with the command:
+
+`docker run --network=fittracker -e DB_HOST=postgres -p 8080:8080 fittracker`
