@@ -71,3 +71,33 @@ docker-compose up -d
 or run the container with the command:
 
 `docker run --network=fittracker -e DB_HOST=postgres -p 8080:8080 fittracker`
+
+#### Updating Dockerfile
+
+As we progress with development we'll be adding new modules to the application.
+Therefore, these modules will have to be added to Dockerfile (which includes only what's necessary).
+To do that, we'll have to:
+
+1. Build the jar
+
+```
+mvn clean package -DskipTests 
+```
+
+2. Unpack the jar
+```
+jar xf target/fittracker-0.0.1-SNAPSHOT.jar
+```
+
+3. Use jdeps to get dependencies:
+
+```
+jdeps --ignore-missing-deps -q  \
+--recursive  \
+--multi-release 21  \
+--print-module-deps  \
+--class-path 'BOOT-INF/lib/*'  \
+target/fittracker-0.0.1-SNAPSHOT.jar
+```
+
+4. Update modules in Dockerfile (`--add-modules` option)
