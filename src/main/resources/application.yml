@@ -5,12 +5,13 @@ management:
             exposure.include: health
 spring:
     datasource:
-        url: jdbc:postgresql://localhost:5432/fittracker
+        url: jdbc:postgresql://${DB_HOST:localhost}:5432/fittracker
         password: password
         username: user
 ---
 spring:
-    profiles:
-        active: test
     liquibase:
         change-log: changelog.yml
+    config:
+        activate:
+            on-profile: test
