@@ -2,6 +2,7 @@ package com.fittracker.fittracker.controller;
 
 
 import com.fittracker.fittracker.exception.ErrorResponseMapper;
+import com.fittracker.fittracker.security.JwtAuthenticationFilter;
 import com.fittracker.fittracker.service.WeightService;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -11,8 +12,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.verification.VerificationMode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.web.servlet.MockMvc;
@@ -28,6 +31,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
@@ -37,8 +41,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(WeightController.class)
+@AutoConfigureMockMvc(addFilters = false)
 @Import(ErrorResponseMapper.class)
+@WebMvcTest(controllers = WeightController.class, excludeFilters = {
+        @ComponentScan.Filter(type = ASSIGNABLE_TYPE, value = JwtAuthenticationFilter.class)})
 public class WeightControllerValidationTest {
 
     @MockBean
@@ -125,7 +131,7 @@ public class WeightControllerValidationTest {
         public void givenPostRequestWithValidDate_shouldReturnCreated() throws Exception {
             mockMvc
                     .perform(post(URI.create(ENDPOINT))
-                            .contentType("application/json")
+                            .contentType(APPLICATION_JSON)
                             .content("{\"date\":\"2023-10-10\",\"value\": 13.2}"))
                     .andExpect(status().is(CREATED.value()))
                     .andExpect(content().string(""));
@@ -137,7 +143,7 @@ public class WeightControllerValidationTest {
         public void givenPostRequestWithDateNow_shouldReturnCreated() throws Exception {
             mockMvc
                     .perform(post(URI.create(ENDPOINT))
-                            .contentType("application/json")
+                            .contentType(APPLICATION_JSON)
                             .content(format("{\"date\":\"%s\",\"value\": 13.2}", LocalDate.now())))
                     .andExpect(status().is(CREATED.value()))
                     .andExpect(content().string(""));
@@ -149,7 +155,7 @@ public class WeightControllerValidationTest {
         public void givenPostRequestWithNullDate_shouldReturnDateErrorMessage() throws Exception {
             mockMvc
                     .perform(post(URI.create(ENDPOINT))
-                            .contentType("application/json")
+                            .contentType(APPLICATION_JSON)
                             .content("{\"value\": 13.2}"))
                     .andExpect(status().is(BAD_REQUEST.value()))
                     .andExpect(content().string("{\"field\":\"date\",\"message\":\"Date must not be null\"}"));
