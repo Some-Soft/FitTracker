@@ -24,7 +24,7 @@ class DateAfterValidatorTest {
     private DateAfter dateAfter;
 
     @BeforeEach
-    void setUp() {
+    void beforeEach() {
         when(dateAfter.value()).thenReturn("2022-12-31");
         dateAfterValidator.initialize(dateAfter);
     }

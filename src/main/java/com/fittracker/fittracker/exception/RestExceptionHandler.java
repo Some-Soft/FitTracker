@@ -3,6 +3,7 @@ package com.fittracker.fittracker.exception;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,6 +13,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @RestControllerAdvice
 class RestExceptionHandler {
@@ -33,6 +35,11 @@ class RestExceptionHandler {
         return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
     }
 
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    ResponseEntity<ErrorResponse> handleException(UserAlreadyExistsException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorResponse> handleException(MethodArgumentNotValidException e) {
         return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
@@ -51,6 +58,11 @@ class RestExceptionHandler {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     ResponseEntity<ErrorResponse> handleException(MissingServletRequestParameterException e) {
         return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    ResponseEntity<ErrorResponse> handleException(BadCredentialsException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e),UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)

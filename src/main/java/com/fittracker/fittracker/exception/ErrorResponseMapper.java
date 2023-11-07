@@ -2,6 +2,7 @@ package com.fittracker.fittracker.exception;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -19,6 +20,7 @@ public class ErrorResponseMapper {
     private static final String INVALID_DATE_FORMAT_MESSAGE = "Date must be in format: YYYY-MM-DD";
     private static final String INVALID_REQUEST_MESSAGE = "Invalid request";
     private static final String NULL_PARAMETER_MESSAGE = "Parameter must not be null";
+    private static final String BAD_CREDENTIALS_MESSAGE = "Bad credentials";
     private static final String UNKNOWN_ERROR_MESSAGE = "Unknown error";
 
     ErrorResponse map(WeightNotFoundException e) {
@@ -26,6 +28,10 @@ public class ErrorResponseMapper {
     }
 
     ErrorResponse map(WeightAlreadyExistsException e) {
+        return ErrorResponse.withMessage(e.getMessage());
+    }
+
+    ErrorResponse map(UserAlreadyExistsException e) {
         return ErrorResponse.withMessage(e.getMessage());
     }
 
@@ -47,6 +53,10 @@ public class ErrorResponseMapper {
 
     ErrorResponse map(MissingServletRequestParameterException e) {
         return new ErrorResponse(e.getParameterName(), NULL_PARAMETER_MESSAGE);
+    }
+
+    ErrorResponse map(BadCredentialsException e) {
+        return ErrorResponse.withMessage(BAD_CREDENTIALS_MESSAGE);
     }
 
     ErrorResponse map(Exception e) {
