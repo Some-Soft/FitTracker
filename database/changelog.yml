@@ -3,3 +3,5 @@ databaseChangeLog:
       file: scripts/001-FIT-3-create_weights_table.sql
   - include:
       file: scripts/002-FIT-11-create_users_table.sql
+  - include:
+      file: scripts/003-FIT-23-update_weights_table_with_user_id_foreign_key.sql

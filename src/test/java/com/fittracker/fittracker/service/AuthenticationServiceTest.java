@@ -39,7 +39,7 @@ class AuthenticationServiceTest {
 
     private static final RegisterRequest REGISTER_REQUEST = new RegisterRequest("user", "user@example.com", "password");
 
-    private static final UUID TEST_UUID = UUID.randomUUID();
+    private static final UUID TEST_UUID = UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d");
     private static final LoginRequest LOGIN_REQUEST = new LoginRequest("user","password");
 
     @Captor

@@ -6,6 +6,7 @@ import com.fittracker.fittracker.exception.WeightNotFoundException;
 import com.fittracker.fittracker.repository.WeightRepository;
 import com.fittracker.fittracker.request.WeightRequest;
 import com.fittracker.fittracker.response.WeightResponse;
+import com.fittracker.fittracker.security.SecurityHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,17 +23,20 @@ public class WeightService {
     }
 
     public WeightResponse save(WeightRequest weightRequest) {
-        if (weightRepository.existsByDate(weightRequest.date())) {
+        if (weightRepository.existsByDateAndUserId(weightRequest.date(), SecurityHelper.getUserId())) {
             throw new WeightAlreadyExistsException(weightRequest.date());
         }
-        Weight weight = weightRepository.save(weightRequest.toWeight());
 
-        return WeightResponse.fromWeight(weight);
+        Weight weight = weightRequest.toWeight();
+        weight.setUserId(SecurityHelper.getUserId());
+        Weight dbWeight = weightRepository.save(weight);
+
+        return WeightResponse.fromWeight(dbWeight);
     }
 
     public WeightResponse findByDate(LocalDate date) {
-        return weightRepository.findByDate(date)
+        return weightRepository.findByDateAndUserId(date, SecurityHelper.getUserId())
                 .map(WeightResponse::fromWeight)
-                .orElseThrow(()-> new WeightNotFoundException(date));
+                .orElseThrow(() -> new WeightNotFoundException(date));
     }
 }

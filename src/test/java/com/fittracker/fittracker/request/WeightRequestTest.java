@@ -10,7 +10,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WeightRequestTest {
 
     @Test
-    void givenWeightRequest_shouldReturnWeight() {
+    void toWeight_givenWeightRequest_shouldReturnWeight() {
         Double testValue = 55.6;
         LocalDate testDate = LocalDate.of(2023,9,11);
         WeightRequest weightRequest = new WeightRequest(testDate, testValue);
@@ -19,5 +19,6 @@ class WeightRequestTest {
         var result = weightRequest.toWeight();
 
         assertThat(result).usingRecursiveComparison().isEqualTo(expectedResult);
+
     }
 }
