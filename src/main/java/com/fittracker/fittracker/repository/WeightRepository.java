@@ -5,9 +5,10 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface WeightRepository extends CrudRepository<Weight,Long> {
-    Boolean existsByDate(LocalDate date);
+    Boolean existsByDateAndUserId(LocalDate date, UUID userId);
 
-    Optional<Weight> findByDate(LocalDate date);
+    Optional<Weight> findByDateAndUserId(LocalDate date, UUID userId);
 }

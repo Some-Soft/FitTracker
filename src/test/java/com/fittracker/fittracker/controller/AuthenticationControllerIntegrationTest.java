@@ -8,7 +8,6 @@ import com.fittracker.fittracker.request.LoginRequest;
 import com.fittracker.fittracker.request.RegisterRequest;
 import com.fittracker.fittracker.response.LoginResponse;
 import com.fittracker.fittracker.response.RegisterResponse;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +29,8 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
     private final static String ENDPOINT = "/auth";
 
+    private final static UUID TEST_UUID = UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d");
+
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
@@ -40,12 +41,6 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
     @Override
     protected String getEndpoint() {
         return ENDPOINT;
-    }
-
-    @BeforeEach
-    void beforeEach() {
-        userRepository.deleteAll();
-
     }
 
     @Nested
@@ -60,7 +55,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
                     .andExpect(status().isCreated())
                     .andReturn().getResponse().getContentAsString();
 
-            var expected = new RegisterResponse(UUID.randomUUID(), "user", "user@example.com");
+            var expected = new RegisterResponse(TEST_UUID, "user", "user@example.com");
             var result = mapper.readValue(responseString,RegisterResponse.class);
 
             assertThat(result).usingRecursiveComparison().ignoringFields("id").isEqualTo(expected);
@@ -69,7 +64,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenUsernameAlreadyExists_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(new User(UUID.randomUUID(), "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
             RegisterRequest registerRequest = new RegisterRequest("user", "anotherUserEmail@example.com", "password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/register"))
@@ -86,7 +81,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
         }
         @Test
         void givenEmailAlreadyExists_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(new User(UUID.randomUUID(), "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
             RegisterRequest registerRequest = new RegisterRequest("anotherUsername", "user@example.com", "password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/register"))
@@ -108,7 +103,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
     class Login {
         @Test
         void givenValidCredentials_shouldReturnLoginResponse() throws Exception {
-            userRepository.save(new User(UUID.randomUUID(), "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
             LoginRequest loginRequest = new LoginRequest("user","password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/login"))
@@ -123,7 +118,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenNonexistentUser_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(new User(UUID.randomUUID(), "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
             LoginRequest loginRequest = new LoginRequest("badUsername","password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/login"))
@@ -141,7 +136,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenWrongPassword_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(new User(UUID.randomUUID(), "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
             assertThat(userRepository.findAll()).hasSize(1);
             LoginRequest loginRequest = new LoginRequest("user","badPassword");
 

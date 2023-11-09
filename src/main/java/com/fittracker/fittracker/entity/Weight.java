@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -20,12 +21,20 @@ public class Weight {
 
     private Double value;
 
+    private UUID userId;
+
     public Weight() {
     }
 
     public Weight(LocalDate date, Double value) {
         this.date = date;
         this.value = value;
+    }
+
+    public Weight(LocalDate date, Double value, UUID uuid) {
+        this.date = date;
+        this.value = value;
+        this.userId = uuid;
     }
 
     public Long getId() {
@@ -50,5 +59,9 @@ public class Weight {
 
     public void setValue(Double value) {
         this.value = value;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 }

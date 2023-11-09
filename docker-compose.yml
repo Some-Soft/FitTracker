@@ -10,6 +10,8 @@ services:
       DB_HOST: postgres
     depends_on:
       - database
+    profiles:
+      - donotstart
 
   database:
     image: 'postgres:16'
