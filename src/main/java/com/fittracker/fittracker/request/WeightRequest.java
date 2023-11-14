@@ -23,7 +23,8 @@ public record WeightRequest(
         @NotNull(message = "Value must not be null")
         Double value
 ) {
-        public Weight toWeight() {
-                return new Weight(this.date, this.value);
-        }
+    public Weight toWeight() {
+        return new Weight(this.date, this.value);
+    }
+
 }

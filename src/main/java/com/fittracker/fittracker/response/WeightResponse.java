@@ -8,4 +8,5 @@ public record WeightResponse(LocalDate date, Double value) {
     public static WeightResponse fromWeight(Weight weight) {
         return new WeightResponse(weight.getDate(), weight.getValue());
     }
+
 }

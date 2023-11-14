@@ -9,6 +9,7 @@ import com.fittracker.fittracker.response.WeightResponse;
 import com.fittracker.fittracker.security.SecurityHelper;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,20 +36,23 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class WeightServiceTest {
 
-    private static final LocalDate TEST_DATE = LocalDate.of(2023,10,10);
+    private static final LocalDate TEST_DATE = LocalDate.of(2023, 10, 10);
     private static final Double TEST_VALUE = 100.1;
 
     private static final UUID TEST_UUID = UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d");
-    private static final Weight WEIGHT = new Weight(TEST_DATE, TEST_VALUE,TEST_UUID);
-    private static final WeightRequest WEIGHT_REQUEST = new WeightRequest(TEST_DATE,TEST_VALUE);
-    private static final WeightResponse WEIGHT_RESPONSE = new WeightResponse(TEST_DATE,TEST_VALUE);
+    private static final WeightRequest WEIGHT_REQUEST = new WeightRequest(TEST_DATE, TEST_VALUE);
+    private static final WeightResponse WEIGHT_RESPONSE = new WeightResponse(TEST_DATE, TEST_VALUE);
 
     private static MockedStatic<SecurityHelper> mockedStatic;
+
+    @Captor
+    private ArgumentCaptor<Weight> weightCaptor;
 
     @Mock
     private WeightRepository weightRepository;
     @InjectMocks
     private WeightService weightService;
+    private Weight weight;
 
     @BeforeAll
     static void beforeAll() {
@@ -61,28 +65,33 @@ public class WeightServiceTest {
         mockedStatic.close();
     }
 
+    @BeforeEach
+    void beforeEach() {
+        weight = new Weight(TEST_DATE, TEST_VALUE, TEST_UUID);
+    }
+
     @Nested
     class FindByDate {
         @Test
         void givenDateFound_shouldReturnWeightResponse() {
-            when(weightRepository.findByDateAndUserId(any(),any())).thenReturn(of(WEIGHT));
+            when(weightRepository.findByDateAndUserId(any(), any())).thenReturn(of(weight));
 
             var result = weightService.findByDate(LocalDate.of(2023, 10, 10));
 
             assertThat(result).isEqualTo(WEIGHT_RESPONSE);
-            verify(weightRepository).findByDateAndUserId(LocalDate.of(2023, 10, 10),TEST_UUID);
+            verify(weightRepository).findByDateAndUserId(LocalDate.of(2023, 10, 10), TEST_UUID);
             verifyNoMoreInteractions(weightRepository);
         }
 
         @Test
         void givenNoDateFound_shouldThrowWeightNotFoundException() {
-            when(weightRepository.findByDateAndUserId(any(),any())).thenReturn(empty());
+            when(weightRepository.findByDateAndUserId(any(), any())).thenReturn(empty());
 
             assertThatThrownBy(() -> weightService.findByDate(LocalDate.of(2023, 10, 10)))
                     .isInstanceOf(WeightNotFoundException.class)
-                    .hasMessageContaining("Weight not found for date: 2023-10-10" );
+                    .hasMessageContaining("Weight not found for date: 2023-10-10");
 
-            verify(weightRepository).findByDateAndUserId(LocalDate.of(2023, 10, 10),TEST_UUID);
+            verify(weightRepository).findByDateAndUserId(LocalDate.of(2023, 10, 10), TEST_UUID);
             verifyNoMoreInteractions(weightRepository);
         }
 
@@ -91,32 +100,90 @@ public class WeightServiceTest {
     @Nested
     class Save {
 
-        @Captor
-        ArgumentCaptor<Weight> weightCaptor;
+
         @Test
         void givenNoDateFound_shouldSaveAndReturnWeightResponse() {
-            when(weightRepository.existsByDateAndUserId(any(),any())).thenReturn(false);
-            when(weightRepository.save(any())).thenReturn(WEIGHT);
+            when(weightRepository.existsByDateAndUserId(any(), any())).thenReturn(false);
+            when(weightRepository.save(any())).thenReturn(weight);
 
             var result = weightService.save(WEIGHT_REQUEST);
 
             assertThat(result).isEqualTo(WEIGHT_RESPONSE);
-            verify(weightRepository).existsByDateAndUserId(TEST_DATE,TEST_UUID);
+            verify(weightRepository).existsByDateAndUserId(TEST_DATE, TEST_UUID);
             verify(weightRepository).save(weightCaptor.capture());
 
-            assertThat(weightCaptor.getValue()).usingRecursiveComparison().isEqualTo(WEIGHT);
+            assertThat(weightCaptor.getValue()).usingRecursiveComparison().isEqualTo(weight);
             verifyNoMoreInteractions(weightRepository);
-
         }
+
         @Test
         void givenDateFound_shouldThrowException() {
-            when(weightRepository.existsByDateAndUserId(any(),any())).thenReturn(true);
+            when(weightRepository.existsByDateAndUserId(any(), any())).thenReturn(true);
 
-            assertThatThrownBy(()-> weightService.save(WEIGHT_REQUEST))
+            assertThatThrownBy(() -> weightService.save(WEIGHT_REQUEST))
                     .isInstanceOf(WeightAlreadyExistsException.class)
                     .hasMessageContaining("Weight already exists for date: 2023-10-10");
-            verify(weightRepository).existsByDateAndUserId(TEST_DATE,TEST_UUID);
+            verify(weightRepository).existsByDateAndUserId(TEST_DATE, TEST_UUID);
             verifyNoMoreInteractions(weightRepository);
         }
     }
+
+    @Nested
+    class Update {
+        WeightRequest updatedWeightRequest = new WeightRequest(TEST_DATE, TEST_VALUE + 1);
+        @Test
+        void givenDateFound_shouldUpdateAndReturnWeightResponse() {
+            Weight updatedWeight = new Weight(TEST_DATE, TEST_VALUE + 1, TEST_UUID);
+            when(weightRepository.findByDateAndUserId(any(), any())).thenReturn(of(weight));
+            when(weightRepository.save(any())).thenReturn(updatedWeight);
+
+            var expected = new WeightResponse(TEST_DATE, TEST_VALUE + 1);
+            var result = weightService.update(updatedWeightRequest);
+
+            assertThat(result).isEqualTo(expected);
+            verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
+            verify(weightRepository).save(weightCaptor.capture());
+            assertThat(weightCaptor.getValue()).usingRecursiveComparison().isEqualTo(updatedWeight);
+            verifyNoMoreInteractions(weightRepository);
+
+        }
+
+        @Test
+        void givenNoDateFound_shouldThrowException() {
+            when(weightRepository.findByDateAndUserId(any(),any())).thenReturn(empty());
+
+            assertThatThrownBy(()->weightService.update(updatedWeightRequest))
+                    .isInstanceOf(WeightNotFoundException.class)
+                    .hasMessageContaining("Weight not found for date: 2023-10-10");
+            verify(weightRepository).findByDateAndUserId(TEST_DATE,TEST_UUID);
+            verifyNoMoreInteractions(weightRepository);
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void givenDateFound_shouldDeleteAndReturnEmptyResponse() {
+            when(weightRepository.findByDateAndUserId(any(), any())).thenReturn(of(weight));
+
+            weightService.delete(TEST_DATE);
+
+            verify(weightRepository).findByDateAndUserId(TEST_DATE,TEST_UUID);
+            verify(weightRepository).delete(weight);
+            verifyNoMoreInteractions(weightRepository);
+        }
+
+        @Test
+        void givenNoDateFound_shouldThrowException() {
+            when(weightRepository.findByDateAndUserId(any(), any())).thenReturn(empty());
+
+            assertThatThrownBy(()-> weightService.delete(TEST_DATE))
+                    .isInstanceOf(WeightNotFoundException.class)
+                    .hasMessageContaining("Weight not found for date: 2023-10-10");
+            verify(weightRepository).findByDateAndUserId(TEST_DATE,TEST_UUID);
+            verifyNoMoreInteractions(weightRepository);
+        }
+    }
+
 }
