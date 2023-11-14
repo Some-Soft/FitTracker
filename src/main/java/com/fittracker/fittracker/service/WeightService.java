@@ -35,8 +35,27 @@ public class WeightService {
     }
 
     public WeightResponse findByDate(LocalDate date) {
+        return WeightResponse.fromWeight(getWeightFromDatabase(date));
+    }
+
+    public WeightResponse update(WeightRequest weightRequest) {
+        Weight dbWeight = getWeightFromDatabase(weightRequest.date());
+        dbWeight.setValue(weightRequest.value());
+
+        Weight weight = weightRepository.save(dbWeight);
+
+        return WeightResponse.fromWeight(weight);
+    }
+
+    public void delete(LocalDate date) {
+        Weight dbWeight = getWeightFromDatabase(date);
+
+        weightRepository.delete(dbWeight);
+    }
+
+    private Weight getWeightFromDatabase(LocalDate date){
         return weightRepository.findByDateAndUserId(date, SecurityHelper.getUserId())
-                .map(WeightResponse::fromWeight)
                 .orElseThrow(() -> new WeightNotFoundException(date));
     }
+
 }

@@ -33,11 +33,12 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -88,12 +89,12 @@ public class WeightControllerValidationTest {
                 "2021-01-02, Date must be after 2022",
                 "2022-12-31, Date must be after 2022"
         })
-        void givenPostRequest_shouldReturnDateErrorMessage(String date, String message) throws Exception {
+        void givenPostRequestWithInvalidDate_shouldReturnDateErrorMessage(String date, String message) throws Exception {
             mockMvc
                     .perform(post(URI.create(ENDPOINT))
                             .contentType(APPLICATION_JSON)
                             .content(format("{\"date\":\"%s\",\"value\": 13.2}", date)))
-                    .andExpect(status().is(BAD_REQUEST.value()))
+                    .andExpect(status().isBadRequest())
                     .andExpect(content().string(format("{\"field\":\"date\",\"message\":\"%s\"}", message)));
 
             verifyNoInteractions(weightService);
@@ -109,7 +110,7 @@ public class WeightControllerValidationTest {
                     .perform(post(URI.create(ENDPOINT))
                             .contentType(APPLICATION_JSON)
                             .content(format("{\"date\":\"2023-08-03\",\"value\": %s}", value)))
-                    .andExpect(status().is(BAD_REQUEST.value()))
+                    .andExpect(status().isBadRequest())
                     .andExpect(content().string(format("{\"field\":\"value\",\"message\":\"%s\"}", message)));
 
             verifyNoInteractions(weightService);
@@ -121,7 +122,7 @@ public class WeightControllerValidationTest {
                     .perform(post(URI.create(ENDPOINT))
                             .contentType(APPLICATION_JSON)
                             .content("{\"date\":\"2023-08-03\"}"))
-                    .andExpect(status().is(BAD_REQUEST.value()))
+                    .andExpect(status().isBadRequest())
                     .andExpect(content().string("{\"field\":\"value\",\"message\":\"Value must not be null\"}"));
 
             verifyNoInteractions(weightService);
@@ -133,7 +134,7 @@ public class WeightControllerValidationTest {
                     .perform(post(URI.create(ENDPOINT))
                             .contentType(APPLICATION_JSON)
                             .content("{\"date\":\"2023-10-10\",\"value\": 13.2}"))
-                    .andExpect(status().is(CREATED.value()))
+                    .andExpect(status().isCreated())
                     .andExpect(content().string(""));
 
             verify(weightService).save(any());
@@ -145,7 +146,7 @@ public class WeightControllerValidationTest {
                     .perform(post(URI.create(ENDPOINT))
                             .contentType(APPLICATION_JSON)
                             .content(format("{\"date\":\"%s\",\"value\": 13.2}", LocalDate.now())))
-                    .andExpect(status().is(CREATED.value()))
+                    .andExpect(status().isCreated())
                     .andExpect(content().string(""));
 
             verify(weightService).save(any());
@@ -157,11 +158,134 @@ public class WeightControllerValidationTest {
                     .perform(post(URI.create(ENDPOINT))
                             .contentType(APPLICATION_JSON)
                             .content("{\"value\": 13.2}"))
-                    .andExpect(status().is(BAD_REQUEST.value()))
+                    .andExpect(status().isBadRequest())
                     .andExpect(content().string("{\"field\":\"date\",\"message\":\"Date must not be null\"}"));
 
             verifyNoInteractions(weightService);
         }
 
     }
+
+    @Nested
+    class Put {
+        @ParameterizedTest
+        @CsvSource({
+                "202-08-03, Date must be in format: YYYY-MM-DD",
+                "03-08-2023, Date must be in format: YYYY-MM-DD",
+                "3000-01-01, Date cannot be in the future",
+                "2021-01-02, Date must be after 2022",
+                "2022-12-31, Date must be after 2022"
+        })
+        void givenPutRequestWithInvalidDate_shouldReturnDateErrorMessage(String date, String message) throws Exception {
+            mockMvc
+                    .perform(put(URI.create(ENDPOINT))
+                            .contentType(APPLICATION_JSON)
+                            .content(format("{\"date\":\"%s\",\"value\": 13.2}", date)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string(format("{\"field\":\"date\",\"message\":\"%s\"}", message)));
+
+            verifyNoInteractions(weightService);
+        }
+
+        @ParameterizedTest
+        @CsvSource({
+                "-1, Value must be positive",
+                "700, Value must be less or equal to 635"
+        })
+        void givenPutRequest_shouldReturnValueErrorMessage(String value, String message) throws Exception {
+            mockMvc
+                    .perform(put(URI.create(ENDPOINT))
+                            .contentType(APPLICATION_JSON)
+                            .content(format("{\"date\":\"2023-08-03\",\"value\": %s}", value)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string(format("{\"field\":\"value\",\"message\":\"%s\"}", message)));
+
+            verifyNoInteractions(weightService);
+        }
+
+        @Test
+        void givenPutRequestWithNullValue_shouldReturnValueErrorMessage() throws Exception {
+            mockMvc
+                    .perform(put(URI.create(ENDPOINT))
+                            .contentType(APPLICATION_JSON)
+                            .content("{\"date\":\"2023-08-03\"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("{\"field\":\"value\",\"message\":\"Value must not be null\"}"));
+
+            verifyNoInteractions(weightService);
+        }
+
+        @Test
+        public void givenPutRequestWithValidDate_shouldReturnOk() throws Exception {
+            mockMvc
+                    .perform(put(URI.create(ENDPOINT))
+                            .contentType(APPLICATION_JSON)
+                            .content("{\"date\":\"2023-10-10\",\"value\": 13.2}"))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(""));
+
+            verify(weightService).update(any());
+        }
+
+        @Test
+        public void givenPutRequestWithDateNow_shouldReturnOk() throws Exception {
+            mockMvc
+                    .perform(put(URI.create(ENDPOINT))
+                            .contentType(APPLICATION_JSON)
+                            .content(format("{\"date\":\"%s\",\"value\": 13.2}", LocalDate.now())))
+                    .andExpect(status().isOk())
+                    .andExpect(content().string(""));
+
+            verify(weightService).update(any());
+        }
+
+        @Test
+        public void givenPutRequestWithNullDate_shouldReturnDateErrorMessage() throws Exception {
+            mockMvc
+                    .perform(put(URI.create(ENDPOINT))
+                            .contentType(APPLICATION_JSON)
+                            .content("{\"value\": 13.2}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("{\"field\":\"date\",\"message\":\"Date must not be null\"}"));
+
+            verifyNoInteractions(weightService);
+        }
+
+    }
+
+    @Nested
+    class Delete {
+        @ParameterizedTest
+        @CsvSource({
+                "202-08-03, Invalid data type",
+                "03-08-2023, Invalid data type",
+        })
+        void givenDeleteRequestWithInvalidDate_shouldReturnErrorMessage(String date, String message) throws Exception {
+
+            mockMvc.perform(delete(URI.create(ENDPOINT + "?date=" + date)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string(format("{\"field\":\"date\",\"message\":\"%s\"}", message)));
+
+            verifyNoInteractions(weightService);
+        }
+
+        @Test
+        public void givenDeleteRequestWithValidDate_shouldReturnNoContent() throws Exception {
+            mockMvc.perform(delete(URI.create(ENDPOINT + "?date=2023-10-10")))
+                    .andExpect(status().isNoContent())
+                    .andExpect(content().string(""));
+
+            verify(weightService).delete(any());
+        }
+
+        @Test
+        public void givenDeleteRequestWithNullDate_shouldReturnErrorMessage() throws Exception {
+            mockMvc.perform(delete(URI.create(ENDPOINT + "?date=")))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(content().string("{\"field\":\"date\",\"message\":\"Parameter must not be null\"}"));
+
+            verifyNoInteractions(weightService);
+        }
+    }
+
 }
