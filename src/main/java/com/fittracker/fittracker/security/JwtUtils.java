@@ -1,6 +1,8 @@
 package com.fittracker.fittracker.security;
 
 import com.fittracker.fittracker.config.JwtConfig;
+import com.fittracker.fittracker.entity.UserDetails;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -10,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtils {
@@ -30,7 +33,9 @@ public class JwtUtils {
         Date dateNow = new Date();
         Date expirationDate = new Date(dateNow.getTime() + tokenExpirationPeriodMilliseconds);
 
+
         return Jwts.builder()
+                .claim("userId",((UserDetails) authentication.getPrincipal()).id())
                 .subject(authentication.getName())
                 .issuedAt(dateNow)
                 .expiration(expirationDate)
@@ -46,6 +51,16 @@ public class JwtUtils {
                 .getPayload()
                 .getSubject();
     }
+
+    public UUID getUserIdFromToken(String token) {
+        return UUID.fromString(Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .get("userId", String.class));
+    }
+
 
     public boolean isTokenValid(String token) {
         try {

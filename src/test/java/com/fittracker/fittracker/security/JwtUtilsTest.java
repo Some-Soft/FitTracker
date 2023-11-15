@@ -1,6 +1,7 @@
 package com.fittracker.fittracker.security;
 
 import com.fittracker.fittracker.config.JwtConfig;
+import com.fittracker.fittracker.entity.UserDetails;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -9,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
 
+import java.util.UUID;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.lenient;
 
@@ -16,17 +19,22 @@ import static org.mockito.Mockito.lenient;
 class JwtUtilsTest {
 
     private static final String TEST_SECRET = "3Wlamn5wuIm2698NNKnplSq2GY8vqbzBCRynuvh1swOKzp5Ivr1zaQ9seoEyk5mFNEyvkxvU9pExIqdm";
+    private static final UUID testUUID = UUID.fromString("5ed73615-eea8-493e-b406-393f3b0af4aa");
     private static final int JWT_SIGNATURE_LENGTH = 86;
     private static final int TEST_TOKEN_EXPIRATION_PERIOD_MINUTES = 60;
     @Mock
     private Authentication authentication;
+    @Mock
+    private UserDetails userDetails;
     private JwtUtils jwtUtils;
-
     private JwtConfig jwtConfig;
+
 
     @BeforeEach
     public void beforeEach() {
         lenient().when(authentication.getName()).thenReturn("user");
+        lenient().when(authentication.getPrincipal()).thenReturn(userDetails);
+        lenient().when(userDetails.id()).thenReturn(testUUID);
         jwtConfig = new JwtConfig(TEST_SECRET, TEST_TOKEN_EXPIRATION_PERIOD_MINUTES);
         jwtUtils = new JwtUtils(jwtConfig);
     }
@@ -48,6 +56,14 @@ class JwtUtilsTest {
         var result = jwtUtils.getUsernameFromToken(token);
 
         assertThat(result).isEqualTo("user");
+    }
+
+    @Test
+    void getUserIdFromToken_givenToken_shouldReturnUserId() {
+        var token = jwtUtils.generateToken(authentication);
+        var result = jwtUtils.getUserIdFromToken(token);
+
+        assertThat(result).isEqualTo(testUUID);
     }
     @Nested
     class IsTokenValid {

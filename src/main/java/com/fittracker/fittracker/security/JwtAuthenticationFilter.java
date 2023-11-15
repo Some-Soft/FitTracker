@@ -1,7 +1,5 @@
 package com.fittracker.fittracker.security;
 
-import com.fittracker.fittracker.entity.UserDetails;
-import com.fittracker.fittracker.service.UserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.UUID;
 
 import static org.springframework.util.StringUtils.hasText;
 
@@ -26,12 +25,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final int TOKEN_BEGIN_INDEX = 7;
 
     private final JwtUtils jwtUtils;
-    private final UserDetailsService userDetailsService;
 
     @Autowired
-    public JwtAuthenticationFilter(JwtUtils jwtUtils, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(JwtUtils jwtUtils) {
         this.jwtUtils = jwtUtils;
-        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -53,9 +50,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private void setAuthenticationInSecurityContext(HttpServletRequest request, String token) {
-        UserDetails userDetails = userDetailsService.loadUserByUsername(jwtUtils.getUsernameFromToken(token));
+        UUID uuid = jwtUtils.getUserIdFromToken(token);
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                userDetails.id(), userDetails.getPassword(), List.of());
+                uuid, "", List.of());
         authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
         SecurityContextHolder.getContext().setAuthentication(authenticationToken);
