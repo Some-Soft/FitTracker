@@ -1,18 +1,18 @@
 package com.fittracker.fittracker.entity;
 
+import static jakarta.persistence.GenerationType.IDENTITY;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-
 import java.time.LocalDate;
 import java.util.UUID;
-
-import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "weights", schema = "fittracker")
 public class Weight {
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
@@ -65,7 +65,7 @@ public class Weight {
         this.userId = userId;
     }
 
-    public UUID getUserId(){
+    public UUID getUserId() {
         return this.userId;
     }
 }

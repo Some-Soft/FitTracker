@@ -1,5 +1,9 @@
 package com.fittracker.fittracker.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fittracker.fittracker.entity.User;
 import com.fittracker.fittracker.exception.ErrorResponse;
@@ -8,21 +12,16 @@ import com.fittracker.fittracker.request.LoginRequest;
 import com.fittracker.fittracker.request.RegisterRequest;
 import com.fittracker.fittracker.response.LoginResponse;
 import com.fittracker.fittracker.response.RegisterResponse;
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 
-import java.net.URI;
-import java.util.List;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest{
+public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private UserRepository userRepository;
@@ -45,18 +44,19 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
     @Nested
     class Register {
+
         @Test
         void givenUsernameNorEmailExists_shouldReturnRegisterResponse() throws Exception {
             RegisterRequest registerRequest = new RegisterRequest("user", "user@example.com", "password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/register"))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(registerRequest)))
-                    .andExpect(status().isCreated())
-                    .andReturn().getResponse().getContentAsString();
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
 
             var expected = new RegisterResponse(TEST_UUID, "user", "user@example.com");
-            var result = mapper.readValue(responseString,RegisterResponse.class);
+            var result = mapper.readValue(responseString, RegisterResponse.class);
 
             assertThat(result).usingRecursiveComparison().ignoringFields("id").isEqualTo(expected);
             assertThat(userRepository.findAll()).hasSize(1);
@@ -64,33 +64,38 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenUsernameAlreadyExists_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com",
+                "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
             RegisterRequest registerRequest = new RegisterRequest("user", "anotherUserEmail@example.com", "password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/register"))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(registerRequest)))
-                    .andExpect(status().isBadRequest())
-                    .andReturn().getResponse().getContentAsString();
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString();
 
-            var expected = new ErrorResponse(null,"User already exists for username/email provided: user/anotherUserEmail@example.com");
+            var expected = new ErrorResponse(null,
+                "User already exists for username/email provided: user/anotherUserEmail@example.com");
             var result = mapper.readValue(responseString, ErrorResponse.class);
 
             assertThat(result).isEqualTo(expected);
             assertThat(userRepository.findAll()).hasSize(1);
         }
+
         @Test
         void givenEmailAlreadyExists_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com",
+                "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
             RegisterRequest registerRequest = new RegisterRequest("anotherUsername", "user@example.com", "password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/register"))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(registerRequest)))
-                    .andExpect(status().isBadRequest())
-                    .andReturn().getResponse().getContentAsString();
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isBadRequest())
+                .andReturn().getResponse().getContentAsString();
 
-            var expected = new ErrorResponse(null,"User already exists for username/email provided: anotherUsername/user@example.com");
+            var expected = new ErrorResponse(null,
+                "User already exists for username/email provided: anotherUsername/user@example.com");
             var result = mapper.readValue(responseString, ErrorResponse.class);
 
             assertThat(result).isEqualTo(expected);
@@ -101,16 +106,18 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
     @Nested
     class Login {
+
         @Test
         void givenValidCredentials_shouldReturnLoginResponse() throws Exception {
-            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
-            LoginRequest loginRequest = new LoginRequest("user","password");
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com",
+                "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            LoginRequest loginRequest = new LoginRequest("user", "password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/login"))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(loginRequest)))
-                    .andExpect(status().isOk())
-                    .andReturn().getResponse().getContentAsString();
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
 
             var loginResponse = mapper.readValue(responseString, LoginResponse.class);
             assertThat(loginResponse.token()).isNotBlank();
@@ -118,16 +125,17 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenNonexistentUser_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
-            LoginRequest loginRequest = new LoginRequest("badUsername","password");
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com",
+                "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            LoginRequest loginRequest = new LoginRequest("badUsername", "password");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/login"))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(loginRequest)))
-                    .andExpect(status().isUnauthorized())
-                    .andReturn().getResponse().getContentAsString();
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isUnauthorized())
+                .andReturn().getResponse().getContentAsString();
 
-            var expected = new ErrorResponse(null,"Bad credentials");
+            var expected = new ErrorResponse(null, "Bad credentials");
             var result = mapper.readValue(responseString, ErrorResponse.class);
 
             assertThat(result).isEqualTo(expected);
@@ -136,17 +144,18 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenWrongPassword_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(new User(TEST_UUID, "user", "user@example.com", "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
+            userRepository.save(new User(TEST_UUID, "user", "user@example.com",
+                "$2a$10$2gvLjc6wUEgM42M73tQ9ieI2jrAwfxap3X7XsEt//swQvJXyMpVJ6"));
             assertThat(userRepository.findAll()).hasSize(1);
-            LoginRequest loginRequest = new LoginRequest("user","badPassword");
+            LoginRequest loginRequest = new LoginRequest("user", "badPassword");
 
             var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/login"))
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(mapper.writeValueAsString(loginRequest)))
-                    .andExpect(status().isUnauthorized())
-                    .andReturn().getResponse().getContentAsString();
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isUnauthorized())
+                .andReturn().getResponse().getContentAsString();
 
-            var expected = new ErrorResponse(null,"Bad credentials");
+            var expected = new ErrorResponse(null, "Bad credentials");
             var result = mapper.readValue(responseString, ErrorResponse.class);
 
             assertThat(result).isEqualTo(expected);

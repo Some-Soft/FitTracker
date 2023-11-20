@@ -1,7 +1,11 @@
 package com.fittracker.fittracker.security;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.lenient;
+
 import com.fittracker.fittracker.config.JwtConfig;
 import com.fittracker.fittracker.entity.UserDetails;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -9,11 +13,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.Authentication;
-
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.lenient;
 
 @ExtendWith(MockitoExtension.class)
 class JwtUtilsTest {
@@ -65,6 +64,7 @@ class JwtUtilsTest {
 
         assertThat(result).isEqualTo(testUUID);
     }
+
     @Nested
     class IsTokenValid {
 

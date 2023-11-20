@@ -25,7 +25,7 @@ public class AuthenticationService {
 
     @Autowired
     public AuthenticationService(AuthenticationManager authenticationManager, JwtUtils jwtUtils,
-                                 PasswordEncoder passwordEncoder, UserRepository userRepository) {
+        PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.authenticationManager = authenticationManager;
         this.jwtUtils = jwtUtils;
         this.passwordEncoder = passwordEncoder;
@@ -44,7 +44,7 @@ public class AuthenticationService {
 
     public LoginResponse login(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                loginRequest.username(), loginRequest.password()));
+            loginRequest.username(), loginRequest.password()));
 
         return new LoginResponse(jwtUtils.generateToken(authentication));
     }

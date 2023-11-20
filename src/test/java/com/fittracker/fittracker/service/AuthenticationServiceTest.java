@@ -1,5 +1,14 @@
 package com.fittracker.fittracker.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
+
 import com.fittracker.fittracker.entity.User;
 import com.fittracker.fittracker.exception.UserAlreadyExistsException;
 import com.fittracker.fittracker.repository.UserRepository;
@@ -8,6 +17,7 @@ import com.fittracker.fittracker.request.RegisterRequest;
 import com.fittracker.fittracker.response.LoginResponse;
 import com.fittracker.fittracker.response.RegisterResponse;
 import com.fittracker.fittracker.security.JwtUtils;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -23,24 +33,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
-
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceTest {
 
     private static final RegisterRequest REGISTER_REQUEST = new RegisterRequest("user", "user@example.com", "password");
 
     private static final UUID TEST_UUID = UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d");
-    private static final LoginRequest LOGIN_REQUEST = new LoginRequest("user","password");
+    private static final LoginRequest LOGIN_REQUEST = new LoginRequest("user", "password");
 
     @Captor
     private ArgumentCaptor<User> userCaptor;
@@ -63,11 +62,13 @@ class AuthenticationServiceTest {
     @BeforeEach
     void beforeEach() {
         lenient().when(passwordEncoder.encode("password")).thenReturn("encodedPassword");
-        lenient().when(userRepository.save(any())).thenReturn(new User(TEST_UUID, "user", "user@example.com", "password"));
+        lenient().when(userRepository.save(any()))
+            .thenReturn(new User(TEST_UUID, "user", "user@example.com", "password"));
     }
 
     @Nested
     class Register {
+
         @Test
         void givenNonexistentUser_shouldReturnRegisterResponse() {
             when(userRepository.existsByUsernameOrEmail(any(), any())).thenReturn(false);
@@ -79,7 +80,8 @@ class AuthenticationServiceTest {
             verify(userRepository).existsByUsernameOrEmail("user", "user@example.com");
             verify(passwordEncoder).encode("password");
             verify(userRepository).save(userCaptor.capture());
-            assertThat(userCaptor.getValue()).usingRecursiveComparison().isEqualTo(new User(null, "user", "user@example.com", "encodedPassword"));
+            assertThat(userCaptor.getValue()).usingRecursiveComparison()
+                .isEqualTo(new User(null, "user", "user@example.com", "encodedPassword"));
             verifyNoMoreInteractions(userRepository);
         }
 
@@ -88,8 +90,8 @@ class AuthenticationServiceTest {
             when(userRepository.existsByUsernameOrEmail(any(), any())).thenReturn(true);
 
             assertThatThrownBy(() -> authenticationService.register(REGISTER_REQUEST))
-                    .isInstanceOf(UserAlreadyExistsException.class)
-                    .hasMessageContaining("User already exists for username/email provided: user/user@example.com");
+                .isInstanceOf(UserAlreadyExistsException.class)
+                .hasMessageContaining("User already exists for username/email provided: user/user@example.com");
 
             verify(userRepository).existsByUsernameOrEmail(any(), any());
             verifyNoMoreInteractions(userRepository);
@@ -101,7 +103,8 @@ class AuthenticationServiceTest {
     @Nested
     class Login {
 
-        private static final UsernamePasswordAuthenticationToken USERNAME_PASSWORD_AUTHENTICATION_TOKEN = new UsernamePasswordAuthenticationToken("user", "password");
+        private static final UsernamePasswordAuthenticationToken USERNAME_PASSWORD_AUTHENTICATION_TOKEN = new UsernamePasswordAuthenticationToken(
+            "user", "password");
 
         @Test
         void givenValidCredentials_shouldReturnLoginResponse() {
@@ -119,10 +122,11 @@ class AuthenticationServiceTest {
 
         @Test
         void givenInvalidCredentials_shouldThrowException() {
-            when(authenticationManager.authenticate(USERNAME_PASSWORD_AUTHENTICATION_TOKEN)).thenThrow(BadCredentialsException.class);
+            when(authenticationManager.authenticate(USERNAME_PASSWORD_AUTHENTICATION_TOKEN)).thenThrow(
+                BadCredentialsException.class);
 
             assertThatThrownBy(() -> authenticationService.login(LOGIN_REQUEST))
-                    .isInstanceOf(BadCredentialsException.class);
+                .isInstanceOf(BadCredentialsException.class);
 
             verify(authenticationManager).authenticate(USERNAME_PASSWORD_AUTHENTICATION_TOKEN);
             verifyNoMoreInteractions(authenticationManager);

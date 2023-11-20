@@ -1,6 +1,12 @@
 package com.fittracker.fittracker.controller;
 
+import static java.net.URI.create;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import jakarta.transaction.Transactional;
+import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,13 +18,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.util.List;
-
-import static java.net.URI.create;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @Testcontainers
@@ -39,14 +38,15 @@ abstract class BaseIntegrationTest {
     }
 
     protected abstract List<HttpMethod> getProtectedHttpMethods();
+
     protected abstract String getEndpoint();
 
     @Test
     void givenRequestWithNoAuthorization_shouldReturnUnauthorizedError() throws Exception {
         for (HttpMethod httpMethod : getProtectedHttpMethods()) {
             mockMvc.perform(request(httpMethod, create(getEndpoint())))
-                    .andExpect(status().isUnauthorized())
-                    .andExpect(content().string(""));
+                .andExpect(status().isUnauthorized())
+                .andExpect(content().string(""));
         }
     }
 
