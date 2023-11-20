@@ -1,5 +1,10 @@
 package com.fittracker.fittracker.exception;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -9,11 +14,6 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
-import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
 @RestControllerAdvice
 class RestExceptionHandler {
@@ -52,13 +52,14 @@ class RestExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     ResponseEntity<ErrorResponse> handleException(BadCredentialsException e) {
-        return new ResponseEntity<>(errorResponseMapper.map(e),UNAUTHORIZED);
+        return new ResponseEntity<>(errorResponseMapper.map(e), UNAUTHORIZED);
     }
 
     @ExceptionHandler(FitTrackerException.class)
     ResponseEntity<ErrorResponse> handleException(FitTrackerException e) {
         return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
     }
+
     @ExceptionHandler(Exception.class)
     ResponseEntity<ErrorResponse> handleException(Exception e) {
         return new ResponseEntity<>(errorResponseMapper.map(e), INTERNAL_SERVER_ERROR);

@@ -1,6 +1,9 @@
 # FitTracker
 App for tracking your weight and calorie intake.
 
+## Code
+Google Style is used. Config can be found in **intellij-java-google-style.xml** located in the root directory.
+
 ## Local Setup
 
 ### Prerequisites

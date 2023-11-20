@@ -1,16 +1,15 @@
 package com.fittracker.fittracker.exception;
 
+import static java.util.Optional.ofNullable;
+
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import java.time.format.DateTimeParseException;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-
-import java.time.format.DateTimeParseException;
-
-import static java.util.Optional.ofNullable;
 
 @Component
 public class ErrorResponseMapper {
@@ -29,8 +28,8 @@ public class ErrorResponseMapper {
 
     ErrorResponse map(MethodArgumentNotValidException e) {
         return ofNullable(e.getBindingResult().getFieldError())
-                .map(fieldError -> new ErrorResponse(fieldError.getField(), fieldError.getDefaultMessage()))
-                .orElse(ErrorResponse.withMessage(INVALID_REQUEST_MESSAGE));
+            .map(fieldError -> new ErrorResponse(fieldError.getField(), fieldError.getDefaultMessage()))
+            .orElse(ErrorResponse.withMessage(INVALID_REQUEST_MESSAGE));
     }
 
     ErrorResponse map(MethodArgumentTypeMismatchException e) {
@@ -39,8 +38,8 @@ public class ErrorResponseMapper {
 
     ErrorResponse map(HttpMessageNotReadableException e) {
         return ofNullable(e.getRootCause())
-                .map(this::mapThrowableToErrorResponse)
-                .orElse(ErrorResponse.withMessage(INVALID_REQUEST_MESSAGE));
+            .map(this::mapThrowableToErrorResponse)
+            .orElse(ErrorResponse.withMessage(INVALID_REQUEST_MESSAGE));
     }
 
     ErrorResponse map(MissingServletRequestParameterException e) {
@@ -59,7 +58,8 @@ public class ErrorResponseMapper {
         return switch (throwable) {
             case DateTimeParseException ignored -> new ErrorResponse(DATE_FIELD_NAME, INVALID_DATE_FORMAT_MESSAGE);
             case InvalidFormatException invalidFormatException ->
-                    new ErrorResponse(invalidFormatException.getPath().getFirst().getFieldName(), INVALID_DATA_TYPE_MESSAGE);
+                new ErrorResponse(invalidFormatException.getPath().getFirst().getFieldName(),
+                    INVALID_DATA_TYPE_MESSAGE);
             default -> ErrorResponse.withMessage(INVALID_REQUEST_MESSAGE);
         };
     }

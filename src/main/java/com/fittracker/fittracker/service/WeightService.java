@@ -8,11 +8,10 @@ import com.fittracker.fittracker.repository.WeightRepository;
 import com.fittracker.fittracker.request.WeightRequest;
 import com.fittracker.fittracker.response.WeightResponse;
 import com.fittracker.fittracker.security.SecurityHelper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class WeightService {
@@ -60,14 +59,14 @@ public class WeightService {
             throw new InvalidDateRangeException();
         }
 
-        return weightRepository.findByDateBetweenAndUserId(startDate,endDate,SecurityHelper.getUserId())
-                .stream()
-                .map(WeightResponse::fromWeight)
-                .toList();
+        return weightRepository.findByDateBetweenAndUserId(startDate, endDate, SecurityHelper.getUserId())
+            .stream()
+            .map(WeightResponse::fromWeight)
+            .toList();
     }
 
-    private Weight getWeightFromDatabase(LocalDate date){
+    private Weight getWeightFromDatabase(LocalDate date) {
         return weightRepository.findByDateAndUserId(date, SecurityHelper.getUserId())
-                .orElseThrow(() -> new WeightNotFoundException(date));
+            .orElseThrow(() -> new WeightNotFoundException(date));
     }
 }

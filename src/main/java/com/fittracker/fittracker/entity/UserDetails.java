@@ -1,12 +1,12 @@
 package com.fittracker.fittracker.entity;
 
-import org.springframework.security.core.GrantedAuthority;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.security.core.GrantedAuthority;
 
-public record UserDetails(UUID id, String username, String password) implements org.springframework.security.core.userdetails.UserDetails {
+public record UserDetails(UUID id, String username, String password) implements
+    org.springframework.security.core.userdetails.UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

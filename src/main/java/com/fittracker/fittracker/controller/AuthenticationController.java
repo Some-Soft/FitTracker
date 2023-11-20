@@ -1,5 +1,8 @@
 package com.fittracker.fittracker.controller;
 
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+
 import com.fittracker.fittracker.request.LoginRequest;
 import com.fittracker.fittracker.request.RegisterRequest;
 import com.fittracker.fittracker.response.LoginResponse;
@@ -12,9 +15,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
 
 
 @RestController

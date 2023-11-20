@@ -1,13 +1,13 @@
 package com.fittracker.fittracker.service;
 
+import static java.lang.String.format;
+
 import com.fittracker.fittracker.entity.User;
 import com.fittracker.fittracker.entity.UserDetails;
 import com.fittracker.fittracker.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import static java.lang.String.format;
 
 @Service
 public class UserDetailsService implements org.springframework.security.core.userdetails.UserDetailsService {
@@ -24,7 +24,7 @@ public class UserDetailsService implements org.springframework.security.core.use
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException(format(EXCEPTION_MESSAGE_TEMPLATE, username)));
+            .orElseThrow(() -> new UsernameNotFoundException(format(EXCEPTION_MESSAGE_TEMPLATE, username)));
 
         return UserDetails.fromUser(user);
     }

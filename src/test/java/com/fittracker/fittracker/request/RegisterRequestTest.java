@@ -1,9 +1,9 @@
 package com.fittracker.fittracker.request;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fittracker.fittracker.entity.User;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 class RegisterRequestTest {
 
@@ -14,7 +14,7 @@ class RegisterRequestTest {
         String examplePassword = "examplePassword";
         RegisterRequest request = new RegisterRequest(exampleUserName, exampleEmail, examplePassword);
 
-        var expected = new User(exampleUserName,exampleEmail);
+        var expected = new User(exampleUserName, exampleEmail);
         var result = request.toUser();
 
         assertThat(result).usingRecursiveComparison().isEqualTo(expected);
