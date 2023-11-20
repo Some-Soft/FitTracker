@@ -1,6 +1,7 @@
 package com.fittracker.fittracker.service;
 
 import com.fittracker.fittracker.entity.Weight;
+import com.fittracker.fittracker.exception.InvalidDateRangeException;
 import com.fittracker.fittracker.exception.WeightAlreadyExistsException;
 import com.fittracker.fittracker.exception.WeightNotFoundException;
 import com.fittracker.fittracker.repository.WeightRepository;
@@ -21,6 +22,7 @@ import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 import static java.util.Optional.empty;
@@ -30,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
@@ -131,6 +134,7 @@ public class WeightServiceTest {
     @Nested
     class Update {
         WeightRequest updatedWeightRequest = new WeightRequest(TEST_DATE, TEST_VALUE + 1);
+
         @Test
         void givenDateFound_shouldUpdateAndReturnWeightResponse() {
             Weight updatedWeight = new Weight(TEST_DATE, TEST_VALUE + 1, TEST_UUID);
@@ -150,12 +154,12 @@ public class WeightServiceTest {
 
         @Test
         void givenNoDateFound_shouldThrowException() {
-            when(weightRepository.findByDateAndUserId(any(),any())).thenReturn(empty());
+            when(weightRepository.findByDateAndUserId(any(), any())).thenReturn(empty());
 
-            assertThatThrownBy(()->weightService.update(updatedWeightRequest))
+            assertThatThrownBy(() -> weightService.update(updatedWeightRequest))
                     .isInstanceOf(WeightNotFoundException.class)
                     .hasMessageContaining("Weight not found for date: 2023-10-10");
-            verify(weightRepository).findByDateAndUserId(TEST_DATE,TEST_UUID);
+            verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
             verifyNoMoreInteractions(weightRepository);
         }
     }
@@ -169,7 +173,7 @@ public class WeightServiceTest {
 
             weightService.delete(TEST_DATE);
 
-            verify(weightRepository).findByDateAndUserId(TEST_DATE,TEST_UUID);
+            verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
             verify(weightRepository).delete(weight);
             verifyNoMoreInteractions(weightRepository);
         }
@@ -178,12 +182,54 @@ public class WeightServiceTest {
         void givenNoDateFound_shouldThrowException() {
             when(weightRepository.findByDateAndUserId(any(), any())).thenReturn(empty());
 
-            assertThatThrownBy(()-> weightService.delete(TEST_DATE))
+            assertThatThrownBy(() -> weightService.delete(TEST_DATE))
                     .isInstanceOf(WeightNotFoundException.class)
                     .hasMessageContaining("Weight not found for date: 2023-10-10");
-            verify(weightRepository).findByDateAndUserId(TEST_DATE,TEST_UUID);
+            verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
             verifyNoMoreInteractions(weightRepository);
         }
+    }
+
+    @Nested
+    class FindByDateRange {
+        private final LocalDate endDate = TEST_DATE.plusDays(3);
+        private final Weight endWeight = new Weight(endDate, TEST_VALUE, TEST_UUID);
+
+        @Test
+        void givenStartDateAfterEndDate_shouldThrowInvalidDateRangeException() {
+            assertThatThrownBy(() -> weightService.findByDateRange(LocalDate.of(2023, 5, 1), LocalDate.of(2023, 1, 1)))
+                    .isInstanceOf(InvalidDateRangeException.class)
+                    .hasMessageContaining("Start date cannot be after end date");
+
+            verifyNoInteractions(weightRepository);
+        }
+
+        @Test
+        void givenValidDateRange_shouldReturnListOfWeightResponses() {
+            when(weightRepository.findByDateBetweenAndUserId(any(), any(), any()))
+                    .thenReturn(List.of(weight, endWeight));
+
+            var expected = List.of(new WeightResponse(TEST_DATE, TEST_VALUE), new WeightResponse(endDate, TEST_VALUE));
+            var result = weightService.findByDateRange(TEST_DATE, endDate);
+
+            assertThat(result).isEqualTo(expected);
+            verify(weightRepository).findByDateBetweenAndUserId(TEST_DATE, endDate, TEST_UUID);
+            verifyNoMoreInteractions(weightRepository);
+        }
+
+        @Test
+        void givenValidDateRangeWithNoWeights_shouldReturnEmptyList() {
+            when(weightRepository.findByDateBetweenAndUserId(any(), any(), any()))
+                    .thenReturn(List.of());
+
+            var result = weightService.findByDateRange(TEST_DATE, endDate);
+
+            assertThat(result).isEmpty();
+            verify(weightRepository).findByDateBetweenAndUserId(TEST_DATE, endDate, TEST_UUID);
+
+            verifyNoMoreInteractions(weightRepository);
+        }
+
     }
 
 }

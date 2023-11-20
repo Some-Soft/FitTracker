@@ -23,15 +23,7 @@ public class ErrorResponseMapper {
     private static final String BAD_CREDENTIALS_MESSAGE = "Bad credentials";
     private static final String UNKNOWN_ERROR_MESSAGE = "Unknown error";
 
-    ErrorResponse map(WeightNotFoundException e) {
-        return ErrorResponse.withMessage(e.getMessage());
-    }
-
-    ErrorResponse map(WeightAlreadyExistsException e) {
-        return ErrorResponse.withMessage(e.getMessage());
-    }
-
-    ErrorResponse map(UserAlreadyExistsException e) {
+    ErrorResponse map(FitTrackerException e) {
         return ErrorResponse.withMessage(e.getMessage());
     }
 

@@ -30,16 +30,6 @@ class RestExceptionHandler {
         return new ResponseEntity<>(errorResponseMapper.map(e), NOT_FOUND);
     }
 
-    @ExceptionHandler(WeightAlreadyExistsException.class)
-    ResponseEntity<ErrorResponse> handleException(WeightAlreadyExistsException e) {
-        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
-    }
-
-    @ExceptionHandler(UserAlreadyExistsException.class)
-    ResponseEntity<ErrorResponse> handleException(UserAlreadyExistsException e) {
-        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorResponse> handleException(MethodArgumentNotValidException e) {
         return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
@@ -65,8 +55,13 @@ class RestExceptionHandler {
         return new ResponseEntity<>(errorResponseMapper.map(e),UNAUTHORIZED);
     }
 
+    @ExceptionHandler(FitTrackerException.class)
+    ResponseEntity<ErrorResponse> handleException(FitTrackerException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
+    }
     @ExceptionHandler(Exception.class)
     ResponseEntity<ErrorResponse> handleException(Exception e) {
         return new ResponseEntity<>(errorResponseMapper.map(e), INTERNAL_SERVER_ERROR);
     }
+
 }

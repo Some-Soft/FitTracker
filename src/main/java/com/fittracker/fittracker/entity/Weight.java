@@ -64,4 +64,8 @@ public class Weight {
     public void setUserId(UUID userId) {
         this.userId = userId;
     }
+
+    public UUID getUserId(){
+        return this.userId;
+    }
 }
