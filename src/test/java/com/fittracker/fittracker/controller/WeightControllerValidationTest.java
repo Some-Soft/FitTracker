@@ -58,25 +58,53 @@ public class WeightControllerValidationTest {
 
     @Nested
     class Get {
-        private static Stream<Arguments> getRequestTestDataProvider() {
-            return Stream.of(
-                    of("", BAD_REQUEST, "{\"field\":\"date\",\"message\":\"Parameter must not be null\"}", never()),
-                    of("?date=123", BAD_REQUEST, "{\"field\":\"date\",\"message\":\"Invalid data type\"}", never()),
-                    of("?date=2020-01-01", OK, "", times(1)),
-                    of("?date=2050-10-10", OK, "", times(1))
-            );
+
+        @Nested
+        class Weight {
+            private static Stream<Arguments> getWeightRequestTestDataProvider() {
+                return Stream.of(
+                        of("", BAD_REQUEST, "{\"field\":\"date\",\"message\":\"Parameter must not be null\"}", never()),
+                        of("?date=123", BAD_REQUEST, "{\"field\":\"date\",\"message\":\"Invalid data type\"}", never()),
+                        of("?date=2020-01-01", OK, "", times(1)),
+                        of("?date=2050-10-10", OK, "", times(1))
+                );
+            }
+
+            @ParameterizedTest
+            @MethodSource("getWeightRequestTestDataProvider")
+            void givenGetUriRequest_shouldReturnResponse(String params, HttpStatus responseStatus, String responseBody, VerificationMode numberOfServiceInvocations) throws Exception {
+                mockMvc
+                        .perform(get(URI.create(ENDPOINT + params)))
+                        .andExpect(status().is(responseStatus.value()))
+                        .andExpect(content().string(responseBody));
+
+                verify(weightService, numberOfServiceInvocations).findByDate(any());
+            }
         }
 
-        @ParameterizedTest
-        @MethodSource("getRequestTestDataProvider")
-        void givenGetUriRequest_shouldReturnResponse(String params, HttpStatus responseStatus, String responseBody, VerificationMode numberOfServiceInvocations) throws Exception {
-            mockMvc
-                    .perform(get(URI.create(ENDPOINT + params)))
-                    .andExpect(status().is(responseStatus.value()))
-                    .andExpect(content().string(responseBody));
+        @Nested
+        class Weights {
+            private static Stream<Arguments> getWeightsRequestTestDataProvider() {
+                return Stream.of(
+                        of("", BAD_REQUEST, "{\"field\":\"startDate\",\"message\":\"Parameter must not be null\"}", never()),
+                        of("?startDate=123&endDate=2020-01-01", BAD_REQUEST, "{\"field\":\"startDate\",\"message\":\"Invalid data type\"}", never()),
+                        of("?startDate=2020-01-01&endDate=123", BAD_REQUEST, "{\"field\":\"endDate\",\"message\":\"Invalid data type\"}", never()),
+                        of("?startDate=2020-01-01&endDate=2020-02-02", OK, "[]", times(1))
+                );
+            }
 
-            verify(weightService, numberOfServiceInvocations).findByDate(any());
+            @ParameterizedTest
+            @MethodSource("getWeightsRequestTestDataProvider")
+            void givenGetUriRequest_shouldReturnResponse(String params, HttpStatus responseStatus, String responseBody, VerificationMode numberOfServiceInvocations) throws Exception {
+                mockMvc
+                        .perform(get(URI.create(ENDPOINT + "s" + params)))
+                        .andExpect(status().is(responseStatus.value()))
+                        .andExpect(content().string(responseBody));
+
+                verify(weightService, numberOfServiceInvocations).findByDateRange(any(),any());
+            }
         }
+
     }
 
     @Nested

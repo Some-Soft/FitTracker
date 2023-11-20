@@ -1,6 +1,7 @@
 package com.fittracker.fittracker.service;
 
 import com.fittracker.fittracker.entity.Weight;
+import com.fittracker.fittracker.exception.InvalidDateRangeException;
 import com.fittracker.fittracker.exception.WeightAlreadyExistsException;
 import com.fittracker.fittracker.exception.WeightNotFoundException;
 import com.fittracker.fittracker.repository.WeightRepository;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Service
 public class WeightService {
@@ -53,9 +55,19 @@ public class WeightService {
         weightRepository.delete(dbWeight);
     }
 
+    public List<WeightResponse> findByDateRange(LocalDate startDate, LocalDate endDate) {
+        if (startDate.isAfter(endDate)) {
+            throw new InvalidDateRangeException();
+        }
+
+        return weightRepository.findByDateBetweenAndUserId(startDate,endDate,SecurityHelper.getUserId())
+                .stream()
+                .map(WeightResponse::fromWeight)
+                .toList();
+    }
+
     private Weight getWeightFromDatabase(LocalDate date){
         return weightRepository.findByDateAndUserId(date, SecurityHelper.getUserId())
                 .orElseThrow(() -> new WeightNotFoundException(date));
     }
-
 }

@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE;
 import static org.springframework.http.HttpStatus.CREATED;
@@ -56,5 +57,12 @@ public class WeightController {
     @ResponseStatus(NO_CONTENT)
     public void deleteWeight(@RequestParam @DateTimeFormat(iso = DATE) LocalDate date) {
         weightService.delete(date);
+    }
+
+    @GetMapping("/weights")
+    @ResponseStatus(OK)
+    public List<WeightResponse> getWeights(@RequestParam @DateTimeFormat(iso = DATE) LocalDate startDate,
+                                           @RequestParam @DateTimeFormat(iso = DATE) LocalDate endDate ) {
+        return weightService.findByDateRange(startDate,endDate);
     }
 }
