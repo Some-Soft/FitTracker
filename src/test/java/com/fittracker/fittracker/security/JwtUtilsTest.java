@@ -18,9 +18,10 @@ import org.springframework.security.core.Authentication;
 class JwtUtilsTest {
 
     private static final int JWT_SIGNATURE_LENGTH = 86;
-    private static final int TEST_TOKEN_EXPIRATION_PERIOD_MINUTES = 60;
     private static final String TEST_SECRET = "KpQ2DTrUzvqMSkWPG4VAiBkib432jL5MtxyHcqhr5f9rmGwV1XctLGjPxdtLGPDEXkPUYVN7xxzwYsld";
     private static final UUID TEST_UUID = UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d");
+    private static final long TEST_TOKEN_EXPIRATION_PERIOD_MINUTES = 60L;
+
     @Mock
     private Authentication authentication;
     @Mock
@@ -97,7 +98,7 @@ class JwtUtilsTest {
 
         @Test
         void givenExpiredToken_shouldReturnFalse() {
-            jwtConfig = new JwtConfig(TEST_SECRET, -1);
+            jwtConfig = new JwtConfig(TEST_SECRET, -1L);
             jwtUtils = new JwtUtils(jwtConfig);
             String token = jwtUtils.generateToken(authentication);
 

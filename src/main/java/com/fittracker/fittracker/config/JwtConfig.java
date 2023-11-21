@@ -1,5 +1,5 @@
 package com.fittracker.fittracker.config;
 
-public record JwtConfig(String secret, int tokenExpirationPeriodMinutes) {
+public record JwtConfig(String secret, long tokenExpirationPeriodMinutes) {
 
 }

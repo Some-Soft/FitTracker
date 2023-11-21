@@ -17,7 +17,7 @@ public class JwtUtils {
 
     private static final int MILLISECONDS_PER_MINUTE = 60_000;
 
-    private final int tokenExpirationPeriodMilliseconds;
+    private final long tokenExpirationPeriodMilliseconds;
     private final SecretKey secretKey;
 
     @Autowired
