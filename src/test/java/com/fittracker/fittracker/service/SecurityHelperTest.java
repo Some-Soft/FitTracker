@@ -1,6 +1,5 @@
 package com.fittracker.fittracker.service;
 
-import static java.util.UUID.fromString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -26,14 +25,13 @@ public class SecurityHelperTest {
 
     @Test
     void getUserId_givenUserIdInSecurityContext_shouldReturnUserId() {
-        UUID uuid = fromString("97dda3d3-589b-4905-8ce7-7decde00eaa7");
-        when(authentication.getPrincipal()).thenReturn(uuid);
+        when(authentication.getPrincipal()).thenReturn(UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"));
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
 
         var result = SecurityHelper.getUserId();
 
-        assertThat(result).isEqualTo(uuid);
+        assertThat(result).isEqualTo(UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"));
         verify(securityContext).getAuthentication();
         verify(authentication).getPrincipal();
     }

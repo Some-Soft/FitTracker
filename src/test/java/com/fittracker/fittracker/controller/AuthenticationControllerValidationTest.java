@@ -1,5 +1,12 @@
 package com.fittracker.fittracker.controller;
 
+import static com.fittracker.fittracker.dataprovider.Request.loginRequest;
+import static com.fittracker.fittracker.dataprovider.Request.loginRequestWithPassword;
+import static com.fittracker.fittracker.dataprovider.Request.loginRequestWithUsername;
+import static com.fittracker.fittracker.dataprovider.Request.registerRequest;
+import static com.fittracker.fittracker.dataprovider.Request.registerRequestWithEmail;
+import static com.fittracker.fittracker.dataprovider.Request.registerRequestWithPassword;
+import static com.fittracker.fittracker.dataprovider.Request.registerRequestWithUsername;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.params.provider.Arguments.of;
 import static org.mockito.Mockito.verify;
@@ -55,7 +62,7 @@ class AuthenticationControllerValidationTest {
 
         @Test
         void givenValidRegisterRequest_shouldReturnCreated() throws Exception {
-            RegisterRequest registerRequest = new RegisterRequest("user", "user@example.com", "password");
+            RegisterRequest registerRequest = registerRequest();
             mockMvc
                 .perform(post(URI.create(ENDPOINT + "/register"))
                     .contentType(APPLICATION_JSON)
@@ -87,9 +94,9 @@ class AuthenticationControllerValidationTest {
 
         private static Stream<Arguments> nullFieldTestDataProvider() {
             return Stream.of(
-                of(new RegisterRequest(null, "user@example.com", "password"), "username", "Username must not be null"),
-                of(new RegisterRequest("user", null, "password"), "email", "Email must not be null"),
-                of(new RegisterRequest("user", "user@example.com", null), "password", "Password must not be null")
+                of(registerRequestWithUsername(null), "username", "Username must not be null"),
+                of(registerRequestWithEmail(null), "email", "Email must not be null"),
+                of(registerRequestWithPassword(null), "password", "Password must not be null")
             );
         }
 
@@ -113,16 +120,17 @@ class AuthenticationControllerValidationTest {
 
         private static Stream<Arguments> incorrectLengthTestDataProvider() {
             return Stream.of(
-                of(new RegisterRequest("a", "user@example.com", "password"), "username",
+                of(registerRequestWithUsername("a"), "username",
                     "Username must be between 3 and 64 characters"),
-                of(new RegisterRequest("a".repeat(65), "user@example.com", "password"), "username",
+                of(registerRequestWithUsername("a".repeat(65)), "username",
                     "Username must be between 3 and 64 characters"),
-                of(new RegisterRequest("user", "a", "password"), "email", "Email must be between 3 and 254 characters"),
-                of(new RegisterRequest("user", "a".repeat(255), "password"), "email",
+                of(registerRequestWithEmail("a"), "email",
                     "Email must be between 3 and 254 characters"),
-                of(new RegisterRequest("user", "user@example.com", "a"), "password",
+                of(registerRequestWithEmail("a".repeat(255)), "email",
+                    "Email must be between 3 and 254 characters"),
+                of(registerRequestWithPassword("a"), "password",
                     "Password must be between 3 and 30 characters"),
-                of(new RegisterRequest("user", "user@example.com", "a".repeat(31)), "password",
+                of(registerRequestWithPassword("a".repeat(31)), "password",
                     "Password must be between 3 and 30 characters")
             );
         }
@@ -134,7 +142,7 @@ class AuthenticationControllerValidationTest {
 
         @Test
         void givenValidLoginRequest_shouldReturnOk() throws Exception {
-            LoginRequest loginRequest = new LoginRequest("user", "password");
+            LoginRequest loginRequest = loginRequest();
 
             mockMvc
                 .perform(post(URI.create(ENDPOINT + "/login"))
@@ -167,8 +175,8 @@ class AuthenticationControllerValidationTest {
 
         private static Stream<Arguments> nullFieldsTestDataProvider() {
             return Stream.of(
-                of(new LoginRequest(null, "password"), "username", "Username must not be null"),
-                of(new LoginRequest("user", null), "password", "Password must not be null")
+                of(loginRequestWithUsername(null), "username", "Username must not be null"),
+                of(loginRequestWithPassword(null), "password", "Password must not be null")
             );
         }
 
