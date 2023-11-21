@@ -16,7 +16,7 @@ security:
 ---
 spring:
   liquibase:
-    change-log: changelog.yml
+    change-log: test-changelog.yml
   config:
     activate:
       on-profile: test

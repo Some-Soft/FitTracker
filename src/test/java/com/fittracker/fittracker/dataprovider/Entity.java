@@ -34,8 +34,4 @@ public class Entity {
         return new Weight(date, 100.1, UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"));
     }
 
-    public static Weight weightWithUuid(UUID uuid) {
-        return new Weight(LocalDate.of(2023, 10, 10), 100.1, uuid);
-    }
-
 }
