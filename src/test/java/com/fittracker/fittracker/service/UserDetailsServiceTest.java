@@ -1,5 +1,6 @@
 package com.fittracker.fittracker.service;
 
+import static com.fittracker.fittracker.dataprovider.Entity.user;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -7,11 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import com.fittracker.fittracker.entity.User;
 import com.fittracker.fittracker.entity.UserDetails;
 import com.fittracker.fittracker.repository.UserRepository;
 import java.util.Optional;
-import java.util.UUID;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,20 +28,20 @@ class UserDetailsServiceTest {
     @InjectMocks
     private UserDetailsService userDetailsService;
 
+    private static final String TEST_USERNAME = "user";
+
     @Nested
     class LoadByUsername {
 
         @Test
         void givenUsernameOfExistingUser_shouldReturnUser() {
-            User user = new User(UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"), "user", "user@example.com",
-                "password");
-            when(userRepository.findByUsername("user")).thenReturn(Optional.of(user));
+            when(userRepository.findByUsername(TEST_USERNAME)).thenReturn(Optional.of(user()));
 
-            var expected = UserDetails.fromUser(user);
-            var result = userDetailsService.loadUserByUsername("user");
+            var expected = UserDetails.fromUser(user());
+            var result = userDetailsService.loadUserByUsername(TEST_USERNAME);
 
             assertThat(result).isEqualTo(expected);
-            verify(userRepository).findByUsername("user");
+            verify(userRepository).findByUsername(TEST_USERNAME);
             verifyNoMoreInteractions(userRepository);
         }
 
@@ -50,11 +49,11 @@ class UserDetailsServiceTest {
         void givenUsernameOfNonexistentUser_shouldThrowException() {
             when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> userDetailsService.loadUserByUsername("user"))
+            assertThatThrownBy(() -> userDetailsService.loadUserByUsername(TEST_USERNAME))
                 .isInstanceOf(UsernameNotFoundException.class)
                 .hasMessageContaining("Username user not found");
 
-            verify(userRepository).findByUsername("user");
+            verify(userRepository).findByUsername(TEST_USERNAME);
             verifyNoMoreInteractions(userRepository);
         }
     }

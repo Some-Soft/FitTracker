@@ -124,7 +124,8 @@ public class WeightControllerValidationTest {
             "2021-01-02, Date must be after 2022",
             "2022-12-31, Date must be after 2022"
         })
-        void givenPostRequestWithInvalidDate_shouldReturnDateErrorMessage(String date, String message) throws Exception {
+        void givenPostRequestWithInvalidDate_shouldReturnDateErrorMessage(String date, String message)
+            throws Exception {
             mockMvc
                 .perform(post(URI.create(ENDPOINT))
                     .contentType(APPLICATION_JSON)

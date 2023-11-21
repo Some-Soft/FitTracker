@@ -1,25 +1,25 @@
 management:
-    endpoints:
-        web:
-            base-path: /
-            exposure.include: health
+  endpoints:
+    web:
+      base-path: /
+      exposure.include: health
 spring:
-    datasource:
-        url: jdbc:postgresql://${DB_HOST:localhost}:5432/fittracker
-        password: password
-        username: user
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:5432/fittracker
+    password: password
+    username: user
 
 security:
-    jwt:
-        secret: "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem"
-        tokenExpirationPeriodMinutes: 60
+  jwt:
+    secret: "gHgQ0R2AbGjCwoy63dQKMCWyEhKzNwff1OHQteTTOh1EUgJJd09gLIscovYWLQf6eyr7IccpwpbvdXem"
+    tokenExpirationPeriodMinutes: 60
 ---
 spring:
-    liquibase:
-        change-log: changelog.yml
-    config:
-        activate:
-            on-profile: test
+  liquibase:
+    change-log: changelog.yml
+  config:
+    activate:
+      on-profile: test
 security:
-    jwt:
-        secret: "KpQ2DTrUzvqMSkWPG4VAiBkib432jL5MtxyHcqhr5f9rmGwV1XctLGjPxdtLGPDEXkPUYVN7xxzwYsld"
+  jwt:
+    secret: "KpQ2DTrUzvqMSkWPG4VAiBkib432jL5MtxyHcqhr5f9rmGwV1XctLGjPxdtLGPDEXkPUYVN7xxzwYsld"

@@ -17,10 +17,10 @@ import org.springframework.security.core.Authentication;
 @ExtendWith(MockitoExtension.class)
 class JwtUtilsTest {
 
-    private static final String TEST_SECRET = "3Wlamn5wuIm2698NNKnplSq2GY8vqbzBCRynuvh1swOKzp5Ivr1zaQ9seoEyk5mFNEyvkxvU9pExIqdm";
-    private static final UUID testUUID = UUID.fromString("5ed73615-eea8-493e-b406-393f3b0af4aa");
     private static final int JWT_SIGNATURE_LENGTH = 86;
     private static final int TEST_TOKEN_EXPIRATION_PERIOD_MINUTES = 60;
+    private static final String TEST_SECRET = "KpQ2DTrUzvqMSkWPG4VAiBkib432jL5MtxyHcqhr5f9rmGwV1XctLGjPxdtLGPDEXkPUYVN7xxzwYsld";
+    private static final UUID TEST_UUID = UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d");
     @Mock
     private Authentication authentication;
     @Mock
@@ -33,7 +33,7 @@ class JwtUtilsTest {
     public void beforeEach() {
         lenient().when(authentication.getName()).thenReturn("user");
         lenient().when(authentication.getPrincipal()).thenReturn(userDetails);
-        lenient().when(userDetails.id()).thenReturn(testUUID);
+        lenient().when(userDetails.id()).thenReturn(TEST_UUID);
         jwtConfig = new JwtConfig(TEST_SECRET, TEST_TOKEN_EXPIRATION_PERIOD_MINUTES);
         jwtUtils = new JwtUtils(jwtConfig);
     }
@@ -62,7 +62,7 @@ class JwtUtilsTest {
         var token = jwtUtils.generateToken(authentication);
         var result = jwtUtils.getUserIdFromToken(token);
 
-        assertThat(result).isEqualTo(testUUID);
+        assertThat(result).isEqualTo(TEST_UUID);
     }
 
     @Nested
