@@ -1,11 +1,18 @@
 package com.fittracker.fittracker.controller;
 
+
+import static com.github.dockerjava.api.model.Ports.Binding.bindPort;
 import static java.net.URI.create;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import jakarta.transaction.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dockerjava.api.command.CreateContainerCmd;
+import com.github.dockerjava.api.model.ExposedPort;
+import com.github.dockerjava.api.model.HostConfig;
+import com.github.dockerjava.api.model.PortBinding;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -14,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
@@ -22,19 +30,40 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest
 @Testcontainers
 @AutoConfigureMockMvc
-@Transactional
 @ActiveProfiles("test")
 abstract class BaseIntegrationTest {
+
+    private static final String USER = "user";
+    private static final String PASSWORD = "password";
+    private static final int EXPOSED_PORT = 5432;
+    private static final int EXTERNAL_MAPPED_PORT = 54320;
+    private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
+    private static final String AUTHORIZATION_HEADER_VALUE_PREFIX = "Bearer ";
+    private static final String TOKEN = "eyJhbGciOiJIUzUxMiJ9.eyJ1c2VySWQiOiI5NDhjYzcyNy02OGU1LTQ1NWMtYWI2ZC05NDJlNTg1YmRlMGQiLCJzdWIiOiJ1c2VyIiwiaWF0IjoxNzAwMTMwMDQ4LCJleHAiOjIwMTU0OTAwNDh9.-SAg73-4JrzzoSfvtvbyxOZzYCRxnx4wIRiNHlvdTeK5BbOmlL-FG-bNbg1eJ76qUG994OfHQmmQwmfv0JZIWg";
+
+    @ServiceConnection
+    private static final PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
+
+    protected static final ObjectMapper mapper = new ObjectMapper();
 
     @Autowired
     protected MockMvc mockMvc;
 
-    @ServiceConnection
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16");
-
     @BeforeAll
-    static void startDatabaseContainer() {
-        postgres.start();
+    protected static void startDatabaseContainer() {
+        mapper.findAndRegisterModules();
+        postgres
+            .withUsername(USER)
+            .withPassword(PASSWORD)
+            .withExposedPorts(EXPOSED_PORT)
+            .withCreateContainerCmdModifier(BaseIntegrationTest::mapToExternalPort)
+            .start();
+    }
+
+    private static void mapToExternalPort(CreateContainerCmd cmd) {
+        cmd.withHostConfig(new HostConfig().withPortBindings(new PortBinding(
+            bindPort(EXTERNAL_MAPPED_PORT),
+            new ExposedPort(EXPOSED_PORT))));
     }
 
     protected abstract List<HttpMethod> getProtectedHttpMethods();
@@ -50,4 +79,33 @@ abstract class BaseIntegrationTest {
         }
     }
 
+    protected String makeRequest(String endpoint, HttpMethod httpMethod, HttpStatus expectedStatus) throws Exception {
+        return performRequest(endpoint, httpMethod, expectedStatus);
+    }
+
+    protected <T> T makeRequest(String endpoint, HttpMethod httpMethod, HttpStatus expectedStatus,
+        Class<T> responseClass) throws Exception {
+        var responseString = performRequest(endpoint, httpMethod, expectedStatus);
+
+        return mapper.readValue(responseString, responseClass);
+    }
+
+    protected <T> T makeRequestWithBody(HttpMethod httpMethod, Object requestBody, HttpStatus expectedStatus,
+        Class<T> responseClass) throws Exception {
+        var responseString = mockMvc.perform(request(httpMethod, create(getEndpoint()))
+                .header(AUTHORIZATION_HEADER_NAME, AUTHORIZATION_HEADER_VALUE_PREFIX + TOKEN)
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(requestBody)))
+            .andExpect(status().is(expectedStatus.value()))
+            .andReturn().getResponse().getContentAsString();
+
+        return mapper.readValue(responseString, responseClass);
+    }
+
+    private String performRequest(String endpoint, HttpMethod httpMethod, HttpStatus expectedStatus) throws Exception {
+        return mockMvc.perform(request(httpMethod, create(endpoint))
+                .header(AUTHORIZATION_HEADER_NAME, AUTHORIZATION_HEADER_VALUE_PREFIX + TOKEN))
+            .andExpect(status().is(expectedStatus.value()))
+            .andReturn().getResponse().getContentAsString();
+    }
 }

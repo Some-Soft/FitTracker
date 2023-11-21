@@ -1,38 +1,33 @@
 package com.fittracker.fittracker.controller;
 
-import static com.fittracker.fittracker.dataprovider.Entity.user;
-import static com.fittracker.fittracker.dataprovider.Request.loginRequest;
 import static com.fittracker.fittracker.dataprovider.Request.loginRequestWithPassword;
 import static com.fittracker.fittracker.dataprovider.Request.loginRequestWithUsername;
 import static com.fittracker.fittracker.dataprovider.Request.registerRequest;
 import static com.fittracker.fittracker.dataprovider.Request.registerRequestWithEmail;
 import static com.fittracker.fittracker.dataprovider.Request.registerRequestWithUsername;
 import static com.fittracker.fittracker.dataprovider.Response.registerResponse;
+import static java.net.URI.create;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.UNAUTHORIZED;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fittracker.fittracker.exception.ErrorResponse;
-import com.fittracker.fittracker.repository.UserRepository;
 import com.fittracker.fittracker.response.LoginResponse;
 import com.fittracker.fittracker.response.RegisterResponse;
-import java.net.URI;
 import java.util.List;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
 
 public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    private final static String ENDPOINT = "/auth";
-
-    private final ObjectMapper mapper = new ObjectMapper();
+    private static final String ENDPOINT = "/auth";
 
     @Override
     protected List<HttpMethod> getProtectedHttpMethods() {
@@ -49,55 +44,35 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenUsernameNorEmailExists_shouldReturnRegisterResponse() throws Exception {
-            var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/register"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(registerRequest())))
-                .andExpect(status().isCreated())
-                .andReturn().getResponse().getContentAsString();
+            var expectedResponse = registerResponse();
 
-            var expected = registerResponse();
-            var result = mapper.readValue(responseString, RegisterResponse.class);
+            var response = makeUnauthorizedPostRequest(ENDPOINT + "/register", registerRequest(), CREATED,
+                RegisterResponse.class);
 
-            assertThat(result).usingRecursiveComparison().ignoringFields("id").isEqualTo(expected);
-            assertThat(userRepository.findAll()).hasSize(1);
+            assertThat(response).usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedResponse);
         }
 
         @Test
         void givenUsernameAlreadyExists_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(user());
-
-            var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/register"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(registerRequestWithEmail("anotherUserEmail@example.com"))))
-                .andExpect(status().isBadRequest())
-                .andReturn().getResponse().getContentAsString();
-
-            var expected = new ErrorResponse(null,
+            var expectedResponse = new ErrorResponse(null,
                 "User already exists for username/email provided: user/anotherUserEmail@example.com");
-            var result = mapper.readValue(responseString, ErrorResponse.class);
 
-            assertThat(result).isEqualTo(expected);
-            assertThat(userRepository.findAll()).hasSize(1);
+            var response = makeUnauthorizedPostRequest(ENDPOINT + "/register",
+                registerRequestWithEmail("anotherUserEmail@example.com"), BAD_REQUEST, ErrorResponse.class);
+
+            assertThat(response).isEqualTo(expectedResponse);
         }
 
         @Test
         void givenEmailAlreadyExists_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(user());
-
-            var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/register"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(registerRequestWithUsername("anotherUsername"))))
-                .andExpect(status().isBadRequest())
-                .andReturn().getResponse().getContentAsString();
-
-            var expected = new ErrorResponse(null,
+            var expectedResponse = new ErrorResponse(null,
                 "User already exists for username/email provided: anotherUsername/user@example.com");
-            var result = mapper.readValue(responseString, ErrorResponse.class);
 
-            assertThat(result).isEqualTo(expected);
-            assertThat(userRepository.findAll()).hasSize(1);
+            var response = makeUnauthorizedPostRequest(ENDPOINT + "/register",
+                registerRequestWithUsername("anotherUsername"), BAD_REQUEST, ErrorResponse.class);
+
+            assertThat(response).isEqualTo(expectedResponse);
         }
-
     }
 
     @Nested
@@ -105,51 +80,41 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenValidCredentials_shouldReturnLoginResponse() throws Exception {
-            userRepository.save(user());
+            var response = makeUnauthorizedPostRequest(ENDPOINT + "/login", loginRequestWithUsername("testuser"), OK,
+                LoginResponse.class);
 
-            var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/login"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(loginRequest())))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-
-            var loginResponse = mapper.readValue(responseString, LoginResponse.class);
-            assertThat(loginResponse.token()).isNotBlank();
+            assertThat(response.token()).isNotBlank();
         }
 
         @Test
         void givenNonexistentUser_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(user());
+            var expectedResponse = new ErrorResponse(null, "Bad credentials");
 
-            var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/login"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(loginRequestWithUsername("badUsername"))))
-                .andExpect(status().isUnauthorized())
-                .andReturn().getResponse().getContentAsString();
+            var response = makeUnauthorizedPostRequest(ENDPOINT + "/login", loginRequestWithUsername("badUsername"),
+                UNAUTHORIZED, ErrorResponse.class);
 
-            var expected = new ErrorResponse(null, "Bad credentials");
-            var result = mapper.readValue(responseString, ErrorResponse.class);
-
-            assertThat(result).isEqualTo(expected);
-            assertThat(userRepository.findAll()).hasSize(1);
+            assertThat(response).isEqualTo(expectedResponse);
         }
 
         @Test
         void givenWrongPassword_shouldReturnErrorResponse() throws Exception {
-            userRepository.save(user());
-            assertThat(userRepository.findAll()).hasSize(1);
+            var expectedResponse = new ErrorResponse(null, "Bad credentials");
 
-            var responseString = mockMvc.perform(post(URI.create(ENDPOINT + "/login"))
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(loginRequestWithPassword("badPassword"))))
-                .andExpect(status().isUnauthorized())
-                .andReturn().getResponse().getContentAsString();
+            var response = makeUnauthorizedPostRequest(ENDPOINT + "/login", loginRequestWithPassword("badPassword"),
+                UNAUTHORIZED, ErrorResponse.class);
 
-            var expected = new ErrorResponse(null, "Bad credentials");
-            var result = mapper.readValue(responseString, ErrorResponse.class);
-
-            assertThat(result).isEqualTo(expected);
-            assertThat(userRepository.findAll()).hasSize(1);
+            assertThat(response).isEqualTo(expectedResponse);
         }
+    }
+
+    private <T> T makeUnauthorizedPostRequest(String endpoint, Object requestBody, HttpStatus expectedStatus,
+        Class<T> responseClass) throws Exception {
+        var responseString = mockMvc.perform(post(create(endpoint))
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(requestBody)))
+            .andExpect(status().is(expectedStatus.value()))
+            .andReturn().getResponse().getContentAsString();
+
+        return mapper.readValue(responseString, responseClass);
     }
 }

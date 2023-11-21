@@ -1,27 +1,26 @@
 package com.fittracker.fittracker.controller;
 
-import static com.fittracker.fittracker.dataprovider.Entity.user;
-import static com.fittracker.fittracker.dataprovider.Entity.weightWithUuid;
+import static com.fittracker.fittracker.dataprovider.Entity.weight;
+import static com.fittracker.fittracker.dataprovider.Entity.weightWithValue;
+import static com.fittracker.fittracker.dataprovider.Request.weightRequest;
+import static com.fittracker.fittracker.dataprovider.Request.weightRequestWithValue;
+import static com.fittracker.fittracker.dataprovider.Response.weightResponse;
+import static com.fittracker.fittracker.dataprovider.Response.weightResponseWithValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
+import static org.springframework.http.HttpStatus.OK;
 
-import com.fittracker.fittracker.entity.User;
 import com.fittracker.fittracker.entity.Weight;
-import com.fittracker.fittracker.repository.UserRepository;
+import com.fittracker.fittracker.exception.ErrorResponse;
 import com.fittracker.fittracker.repository.WeightRepository;
-import com.fittracker.fittracker.request.LoginRequest;
-import com.fittracker.fittracker.service.AuthenticationService;
-import java.net.URI;
+import com.fittracker.fittracker.response.WeightResponse;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -33,20 +32,11 @@ import org.springframework.http.HttpMethod;
 
 public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
+    private static final String ENDPOINT = "/api/v1/weight";
+    private static final UUID TEST_UUID = UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d");
+
     @Autowired
     private WeightRepository weightRepository;
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private AuthenticationService authenticationService;
-
-    private final static String ENDPOINT = "/api/v1/weight";
-
-    private String token;
-
-    private UUID testUuid;
-
 
     @Override
     protected List<HttpMethod> getProtectedHttpMethods() {
@@ -58,10 +48,9 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
         return ENDPOINT;
     }
 
-
     @BeforeEach
     void beforeEach() {
-        createUser();
+        weightRepository.deleteAll();
     }
 
     @Nested
@@ -69,33 +58,27 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidPostRequest_shouldSaveAnReturnWeight() throws Exception {
+            var expectedResponse = weightResponse();
+            var expectedWeight = weight();
 
-            mockMvc.perform(post(URI.create(ENDPOINT))
-                    .contentType(APPLICATION_JSON)
-                    .content("{\"date\":\"2023-10-10\",\"value\":100.1}")
-                    .header("Authorization", "Bearer " + token))
-                .andExpect(status().isCreated())
-                .andExpect(content().string("{\"date\":\"2023-10-10\",\"value\":100.1}"));
+            var response = makeRequestWithBody(POST, weightRequest(), CREATED, WeightResponse.class);
 
-            var expected = weightWithUuid(testUuid);
-
-            var result = weightRepository.findAll();
-            assertThat(result).hasSize(1);
-            assertThat(result.iterator().next()).
-                usingRecursiveComparison().ignoringFields("id").isEqualTo(expected);
+            assertThat(response).isEqualTo(expectedResponse);
+            var allWeights = weightRepository.findAll();
+            assertThat(allWeights).hasSize(1);
+            assertThat(allWeights.iterator().next()).usingRecursiveComparison().ignoringFields("id")
+                .isEqualTo(expectedWeight);
 
         }
 
         @Test
         void givenValidPostRequestWithExistingDate_shouldReturnError() throws Exception {
-            weightRepository.save(weightWithUuid(testUuid));
-            mockMvc.perform(post(URI.create(ENDPOINT))
-                    .contentType(APPLICATION_JSON)
-                    .content("{\"date\":\"2023-10-10\",\"value\":100.1}")
-                    .header("Authorization", "Bearer " + token))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("{\"message\":\"Weight already exists for date: 2023-10-10\"}"));
+            weightRepository.save(weight());
+            var expectedResponse = new ErrorResponse(null, "Weight already exists for date: 2023-10-10");
 
+            var response = makeRequestWithBody(POST, weightRequest(), BAD_REQUEST, ErrorResponse.class);
+
+            assertThat(response).isEqualTo(expectedResponse);
             assertThat(weightRepository.findAll()).hasSize(1);
         }
     }
@@ -108,21 +91,21 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
             @Test
             void givenValidGetRequestWithExistingDate_shouldReturnWeight() throws Exception {
-                weightRepository.save(weightWithUuid(testUuid));
+                weightRepository.save(weight());
+                var expectedResponse = weightResponse();
 
-                mockMvc.perform(get(URI.create(ENDPOINT + "?date=2023-10-10"))
-                        .header("Authorization", "Bearer " + token))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("{\"date\":\"2023-10-10\",\"value\":100.1}"));
+                var response = makeRequest(ENDPOINT + "?date=2023-10-10", GET, OK, WeightResponse.class);
+
+                assertThat(response).isEqualTo(expectedResponse);
             }
 
             @Test
             void givenValidGetRequestWithNonexistentDate_shouldReturnError() throws Exception {
+                var expectedResponse = new ErrorResponse(null, "Weight not found for date: 2023-10-10");
 
-                mockMvc.perform(get(URI.create(ENDPOINT + "?date=2023-10-10"))
-                        .header("Authorization", "Bearer " + token))
-                    .andExpect(status().isNotFound())
-                    .andExpect(content().string("{\"message\":\"Weight not found for date: 2023-10-10\"}"));
+                var response = makeRequest(ENDPOINT + "?date=2023-10-10", GET, NOT_FOUND, ErrorResponse.class);
+
+                assertThat(response).isEqualTo(expectedResponse);
             }
 
         }
@@ -133,48 +116,55 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
             @BeforeEach
             public void beforeEach() {
                 List<Weight> weights = List.of(
-                    new Weight(LocalDate.of(2023, 1, 1), 100.0, testUuid),
-                    new Weight(LocalDate.of(2023, 2, 20), 98.2, testUuid),
-                    new Weight(LocalDate.of(2023, 1, 10), 95.5, testUuid)
+                    new Weight(LocalDate.of(2023, 1, 1), 100.0, TEST_UUID),
+                    new Weight(LocalDate.of(2023, 2, 20), 98.2, TEST_UUID),
+                    new Weight(LocalDate.of(2023, 1, 10), 95.5, TEST_UUID)
                 );
                 weightRepository.saveAll(weights);
             }
 
             @Test
             void givenDateRange_shouldReturnListOfWeightResponsesSortedByDate() throws Exception {
-                mockMvc.perform(get(URI.create(ENDPOINT + "s?startDate=2023-01-02&endDate=2023-03-04"))
-                        .header("Authorization", "Bearer " + token))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("[{\"date\":\"2023-01-10\",\"value\":95.5}," +
-                        "{\"date\":\"2023-02-20\",\"value\":98.2}]"));
+                var expectedResponse = List.of(
+                    new WeightResponse(LocalDate.of(2023, 1, 10), 95.5),
+                    new WeightResponse(LocalDate.of(2023, 2, 20), 98.2)
+                );
+
+                var response = makeRequest(ENDPOINT + "s?startDate=2023-01-02&endDate=2023-03-04", GET, OK,
+                    WeightResponse[].class);
+
+                assertThat(response).containsExactlyElementsOf(expectedResponse);
             }
 
             @Test
             void givenDateRangeWithNoWeights_shouldReturnEmptyList() throws Exception {
-                mockMvc.perform(get(URI.create(ENDPOINT + "s?startDate=2023-02-21&endDate=2023-03-04"))
-                        .header("Authorization", "Bearer " + token))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("[]"));
+                var response = makeRequest(ENDPOINT + "s?startDate=2023-02-21&endDate=2023-03-04", GET, OK);
+
+                assertThat(response).isEqualTo("[]");
             }
 
             @Test
             void givenStartDateEqualToEndDateWithWeight_shouldReturnListWithOneElement() throws Exception {
-                mockMvc.perform(get(URI.create(ENDPOINT + "s?startDate=2023-01-10&endDate=2023-01-10"))
-                        .header("Authorization", "Bearer " + token))
-                    .andExpect(status().isOk())
-                    .andExpect(content().string("[{\"date\":\"2023-01-10\",\"value\":95.5}]"));
+                var expectedResponse = List.of(
+                    new WeightResponse(LocalDate.of(2023, 1, 10), 95.5)
+                );
+
+                var response = makeRequest(ENDPOINT + "s?startDate=2023-01-10&endDate=2023-01-10", GET, OK,
+                    WeightResponse[].class);
+
+                assertThat(response).containsExactlyElementsOf(expectedResponse);
             }
 
             @Test
             void givenStartDateAfterEndDate_shouldReturnError() throws Exception {
-                mockMvc.perform(get(URI.create(ENDPOINT + "s?startDate=2023-01-10&endDate=2023-01-09"))
-                        .header("Authorization", "Bearer " + token))
-                    .andExpect(status().isBadRequest())
-                    .andExpect(content().string("{\"message\":\"Start date cannot be after end date\"}"));
+                var expectedResponse = new ErrorResponse(null, "Start date cannot be after end date");
+
+                var response = makeRequest(ENDPOINT + "s?startDate=2023-01-10&endDate=2023-01-09", GET, BAD_REQUEST,
+                    ErrorResponse.class);
+
+                assertThat(response).isEqualTo(expectedResponse);
             }
-
         }
-
     }
 
     @Nested
@@ -182,34 +172,27 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidPutRequest_shouldUpdateAndReturnWeight() throws Exception {
-            weightRepository.save(weightWithUuid(testUuid));
+            weightRepository.save(weight());
+            var expectedResponse = weightResponseWithValue(14.3);
+            var expectedWeight = weightWithValue(14.3);
 
-            mockMvc.perform(put(URI.create(ENDPOINT))
-                    .contentType(APPLICATION_JSON)
-                    .content("{\"date\":\"2023-10-10\",\"value\":14.3}")
-                    .header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(content().string("{\"date\":\"2023-10-10\",\"value\":14.3}"));
+            var response = makeRequestWithBody(PUT, weightRequestWithValue(14.3), OK, WeightResponse.class);
 
-            var expected = new Weight(LocalDate.of(2023, 10, 10), 14.3, testUuid);
-
-            var result = weightRepository.findAll();
-            assertThat(result).hasSize(1);
-            assertThat(result.iterator().next()).
-                usingRecursiveComparison().ignoringFields("id").isEqualTo(expected);
-
+            assertThat(response).isEqualTo(expectedResponse);
+            var allWeights = weightRepository.findAll();
+            assertThat(allWeights).hasSize(1);
+            assertThat(allWeights.iterator().next()).usingRecursiveComparison().ignoringFields("id")
+                .isEqualTo(expectedWeight);
         }
 
         @Test
         void givenValidPutRequestWithNonexistentDate_shouldReturnError() throws Exception {
-            mockMvc.perform(put(URI.create(ENDPOINT))
-                    .contentType(APPLICATION_JSON)
-                    .content("{\"date\":\"2023-10-10\",\"value\":100.1}")
-                    .header("Authorization", "Bearer " + token))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("{\"message\":\"Weight not found for date: 2023-10-10\"}"));
-        }
+            var expectedResponse = new ErrorResponse(null, "Weight not found for date: 2023-10-10");
 
+            var response = makeRequestWithBody(PUT, weightRequest(), NOT_FOUND, ErrorResponse.class);
+
+            assertThat(response).isEqualTo(expectedResponse);
+        }
     }
 
     @Nested
@@ -217,38 +200,23 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidDeleteRequest_shouldDeleteAndReturnNoContent() throws Exception {
-            weightRepository.save(weightWithUuid(testUuid));
+            weightRepository.save(weight());
 
-            mockMvc.perform(delete(URI.create(ENDPOINT + "?date=2023-10-10"))
-                    .header("Authorization", "Bearer " + token))
-                .andExpect(status().isNoContent())
-                .andExpect(content().string(""));
+            var response = makeRequest(ENDPOINT + "?date=2023-10-10", DELETE, NO_CONTENT);
 
-            var result = weightRepository.findAll();
-            assertThat(result).hasSize(0);
+            assertThat(response).isEmpty();
+            assertThat(weightRepository.findAll()).hasSize(0);
         }
 
         @Test
         void givenValidDeleteRequestWithNonexistentDate_shouldReturnError() throws Exception {
-            weightRepository.save(weightWithUuid(testUuid));
+            weightRepository.save(weight());
+            var expectedResponse = new ErrorResponse(null, "Weight not found for date: 2023-08-02");
 
-            mockMvc.perform(delete(URI.create(ENDPOINT + "?date=2023-08-02"))
-                    .header("Authorization", "Bearer " + token))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("{\"message\":\"Weight not found for date: 2023-08-02\"}"));
+            var response = makeRequest(ENDPOINT + "?date=2023-08-02", DELETE, NOT_FOUND, ErrorResponse.class);
 
-            var result = weightRepository.findAll();
-            assertThat(result).hasSize(1);
+            assertThat(response).isEqualTo(expectedResponse);
+            assertThat(weightRepository.findAll()).hasSize(1);
         }
     }
-
-    private void createUser() {
-        User user = user();
-        User dbUser = userRepository.save(user);
-
-        LoginRequest loginRequest = new LoginRequest("user", "password");
-        token = authenticationService.login(loginRequest).token();
-        testUuid = dbUser.getId();
-    }
-
 }
