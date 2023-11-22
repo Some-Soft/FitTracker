@@ -134,14 +134,14 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
             public void beforeEach() {
                 List<Weight> weights = List.of(
                     new Weight(LocalDate.of(2023, 1, 1), 100.0, testUuid),
-                    new Weight(LocalDate.of(2023, 1, 10), 95.5, testUuid),
-                    new Weight(LocalDate.of(2023, 2, 20), 98.2, testUuid)
+                    new Weight(LocalDate.of(2023, 2, 20), 98.2, testUuid),
+                    new Weight(LocalDate.of(2023, 1, 10), 95.5, testUuid)
                 );
                 weightRepository.saveAll(weights);
             }
 
             @Test
-            void givenDateRange_shouldReturnListOfWeightResponses() throws Exception {
+            void givenDateRange_shouldReturnListOfWeightResponsesSortedByDate() throws Exception {
                 mockMvc.perform(get(URI.create(ENDPOINT + "s?startDate=2023-01-02&endDate=2023-03-04"))
                         .header("Authorization", "Bearer " + token))
                     .andExpect(status().isOk())
