@@ -59,7 +59,7 @@ public class WeightService {
             throw new InvalidDateRangeException();
         }
 
-        return weightRepository.findByDateBetweenAndUserId(startDate, endDate, SecurityHelper.getUserId())
+        return weightRepository.findByDateBetweenAndUserIdOrderByDate(startDate, endDate, SecurityHelper.getUserId())
             .stream()
             .map(WeightResponse::fromWeight)
             .toList();

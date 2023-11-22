@@ -13,5 +13,5 @@ public interface WeightRepository extends CrudRepository<Weight, Long> {
 
     Optional<Weight> findByDateAndUserId(LocalDate date, UUID userId);
 
-    List<Weight> findByDateBetweenAndUserId(LocalDate startDate, LocalDate endDate, UUID userId);
+    List<Weight> findByDateBetweenAndUserIdOrderByDate(LocalDate startDate, LocalDate endDate, UUID userId);
 }

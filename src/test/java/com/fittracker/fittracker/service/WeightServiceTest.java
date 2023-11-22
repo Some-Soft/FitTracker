@@ -205,26 +205,26 @@ public class WeightServiceTest {
 
         @Test
         void givenValidDateRange_shouldReturnListOfWeightResponses() {
-            when(weightRepository.findByDateBetweenAndUserId(any(), any(), any()))
+            when(weightRepository.findByDateBetweenAndUserIdOrderByDate(any(), any(), any()))
                 .thenReturn(List.of(weight(), endWeight));
 
             var expected = List.of(weightResponse(), weightResponseWithDate(endDate));
             var result = weightService.findByDateRange(TEST_DATE, endDate);
 
             assertThat(result).isEqualTo(expected);
-            verify(weightRepository).findByDateBetweenAndUserId(TEST_DATE, endDate, TEST_UUID);
+            verify(weightRepository).findByDateBetweenAndUserIdOrderByDate(TEST_DATE, endDate, TEST_UUID);
             verifyNoMoreInteractions(weightRepository);
         }
 
         @Test
         void givenValidDateRangeWithNoWeights_shouldReturnEmptyList() {
-            when(weightRepository.findByDateBetweenAndUserId(any(), any(), any()))
+            when(weightRepository.findByDateBetweenAndUserIdOrderByDate(any(), any(), any()))
                 .thenReturn(List.of());
 
             var result = weightService.findByDateRange(TEST_DATE, endDate);
 
             assertThat(result).isEmpty();
-            verify(weightRepository).findByDateBetweenAndUserId(TEST_DATE, endDate, TEST_UUID);
+            verify(weightRepository).findByDateBetweenAndUserIdOrderByDate(TEST_DATE, endDate, TEST_UUID);
 
             verifyNoMoreInteractions(weightRepository);
         }
