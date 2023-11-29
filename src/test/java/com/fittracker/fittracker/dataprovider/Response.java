@@ -1,6 +1,7 @@
 package com.fittracker.fittracker.dataprovider;
 
 import com.fittracker.fittracker.response.LoginResponse;
+import com.fittracker.fittracker.response.ProductResponse;
 import com.fittracker.fittracker.response.RegisterResponse;
 import com.fittracker.fittracker.response.WeightResponse;
 import java.time.LocalDate;
@@ -30,5 +31,8 @@ public class Response {
         return new WeightResponse(date, 100.1);
     }
 
+    public static ProductResponse productResponse() {
+        return new ProductResponse(UUID.fromString("382cf280-8b7a-11ee-b9d1-0242ac120002"), "bread", 245, 58, 8, 0);
+    }
 
 }
