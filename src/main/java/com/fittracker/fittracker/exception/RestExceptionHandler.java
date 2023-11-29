@@ -30,6 +30,11 @@ class RestExceptionHandler {
         return new ResponseEntity<>(errorResponseMapper.map(e), NOT_FOUND);
     }
 
+    @ExceptionHandler(ProductNotFoundException.class)
+    ResponseEntity<ErrorResponse> handleException(ProductNotFoundException e) {
+        return new ResponseEntity<>(errorResponseMapper.map(e), NOT_FOUND);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorResponse> handleException(MethodArgumentNotValidException e) {
         return new ResponseEntity<>(errorResponseMapper.map(e), BAD_REQUEST);
