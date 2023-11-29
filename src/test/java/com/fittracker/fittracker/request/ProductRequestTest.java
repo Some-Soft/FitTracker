@@ -15,6 +15,6 @@ class ProductRequestTest {
         var expected = product();
         var result = productRequest.toProduct();
 
-        assertThat(result).usingRecursiveComparison().ignoringFields("id", "userId", "updatedAt").isEqualTo(expected);
+        assertThat(result).usingRecursiveComparison().ignoringFields("id", "userId", "updatedAt","active").isEqualTo(expected);
     }
 }

@@ -91,7 +91,7 @@ class ProductServiceTest {
         assertThat(result).isEqualTo(productResponse());
         verify(productRepository).save(productCaptor.capture());
 
-        assertThat(productCaptor.getValue()).usingRecursiveComparison().ignoringFields("id", "updatedAt")
+        assertThat(productCaptor.getValue()).usingRecursiveComparison().ignoringFields("id", "updatedAt", "active")
             .isEqualTo(product());
         verifyNoMoreInteractions(productRepository);
     }

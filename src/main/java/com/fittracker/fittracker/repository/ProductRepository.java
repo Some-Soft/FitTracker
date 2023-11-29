@@ -10,4 +10,6 @@ public interface ProductRepository extends CrudRepository<Product, ProductId> {
 
     Optional<Product> findByIdAndUserId(UUID id, UUID userId);
 
+    Optional<Product> findByIdAndUserIdAndActive(UUID id, UUID userId, boolean active);
+
 }

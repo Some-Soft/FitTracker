@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,5 +39,10 @@ public class ProductController {
     @ResponseStatus(OK)
     public ProductResponse getProduct(@PathVariable UUID id) {
         return productService.findById(id);
+    }
+
+    @PutMapping("/product/{id}")
+    public ProductResponse updateProduct(@PathVariable UUID id, @RequestBody @Valid ProductRequest productRequest) {
+        return productService.update(id, productRequest);
     }
 }
