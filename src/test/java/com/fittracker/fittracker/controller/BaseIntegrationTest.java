@@ -2,6 +2,7 @@ package com.fittracker.fittracker.controller;
 
 
 import static com.github.dockerjava.api.model.Ports.Binding.bindPort;
+import static java.lang.String.format;
 import static java.net.URI.create;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
@@ -93,6 +94,19 @@ abstract class BaseIntegrationTest {
     protected <T> T makeRequestWithBody(HttpMethod httpMethod, Object requestBody, HttpStatus expectedStatus,
         Class<T> responseClass) throws Exception {
         var responseString = mockMvc.perform(request(httpMethod, create(getEndpoint()))
+                .header(AUTHORIZATION_HEADER_NAME, AUTHORIZATION_HEADER_VALUE_PREFIX + TOKEN)
+                .contentType(APPLICATION_JSON)
+                .content(mapper.writeValueAsString(requestBody)))
+            .andExpect(status().is(expectedStatus.value()))
+            .andReturn().getResponse().getContentAsString();
+
+        return mapper.readValue(responseString, responseClass);
+    }
+
+    protected <T> T makeRequestWithBodyAndPathVariable(HttpMethod httpMethod, Object requestBody,
+        HttpStatus expectedStatus, String pathVariable,
+        Class<T> responseClass) throws Exception {
+        var responseString = mockMvc.perform(request(httpMethod, create(format("%s/%s", getEndpoint(), pathVariable)))
                 .header(AUTHORIZATION_HEADER_NAME, AUTHORIZATION_HEADER_VALUE_PREFIX + TOKEN)
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(requestBody)))

@@ -51,7 +51,6 @@ public class ErrorResponseMapper {
     }
 
     ErrorResponse map(Exception e) {
-        e.printStackTrace();
         return ErrorResponse.withMessage(UNKNOWN_ERROR_MESSAGE);
     }
 

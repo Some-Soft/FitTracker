@@ -22,9 +22,9 @@ public interface ProductRepository extends CrudRepository<Product, ProductId> {
         nativeQuery = true)
     void insert(@Param("product") Product product);
 
-    default Optional<Product> saveNew(Product product){
+    default Optional<Product> saveNew(Product product) {
         insert(product);
-        return findByIdAndUserIdAndActive(product.getId(),product.getUserId(),true);
+        return findByIdAndUserIdAndActive(product.getId(), product.getUserId(), true);
     }
 
 }

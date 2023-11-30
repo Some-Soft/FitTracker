@@ -9,15 +9,18 @@ import static com.fittracker.fittracker.dataprovider.Request.productRequestWithP
 import static java.lang.String.format;
 import static org.junit.jupiter.params.provider.Arguments.of;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -27,6 +30,7 @@ import com.fittracker.fittracker.request.ProductRequest;
 import com.fittracker.fittracker.security.JwtAuthenticationFilter;
 import com.fittracker.fittracker.service.ProductService;
 import java.net.URI;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -99,6 +103,8 @@ public class ProductControllerValidationTest {
                     .content(mapper.writeValueAsString(productRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(errorResponseString("name", "Product name must not be blank")));
+
+            verifyNoInteractions(productService);
         }
 
         private static Stream<Arguments> postRequestWithBlankNames() {
@@ -118,6 +124,8 @@ public class ProductControllerValidationTest {
                     .content(mapper.writeValueAsString(productRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(errorResponseString(field, "Cannot be less than 0")));
+
+            verifyNoInteractions(productService);
         }
 
         private static Stream<Arguments> postRequestWithNegativeValues() {
@@ -139,6 +147,8 @@ public class ProductControllerValidationTest {
                     .content(mapper.writeValueAsString(productRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(errorResponseString(field, "Cannot exceed 9999")));
+
+            verifyNoInteractions(productService);
         }
 
         private static Stream<Arguments> postRequestWithValuesOver9999() {
@@ -160,6 +170,91 @@ public class ProductControllerValidationTest {
                 .andExpect(content().string(""));
 
             verify(productService).save(any());
+        }
+    }
+
+    @Nested
+    class Put {
+
+        private final static String TEST_PATH_VARIABLE = "/382cf280-8b7a-11ee-b9d1-0242ac120002";
+
+        @ParameterizedTest
+        @MethodSource("putRequestWithBlankNames")
+        void givenProductRequestWithBlankName_shouldReturnErrorMessage(ProductRequest productRequest)
+            throws Exception {
+            mockMvc
+                .perform(put(URI.create(ENDPOINT + TEST_PATH_VARIABLE))
+                    .contentType(APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(productRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(errorResponseString("name", "Product name must not be blank")));
+
+            verifyNoInteractions(productService);
+        }
+
+        private static Stream<Arguments> putRequestWithBlankNames() {
+            return Stream.of(
+                of(productRequestWithName(null)),
+                of(productRequestWithName("")),
+                of(productRequestWithName("   "))
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("putRequestWithNegativeValues")
+        void givenPutRequestWithNegativeValue_shouldReturnError(ProductRequest productRequest, String field)
+            throws Exception {
+            mockMvc.perform(put(URI.create(ENDPOINT + TEST_PATH_VARIABLE))
+                    .contentType(APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(productRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(errorResponseString(field, "Cannot be less than 0")));
+
+            verifyNoInteractions(productService);
+        }
+
+        private static Stream<Arguments> putRequestWithNegativeValues() {
+            return Stream.of(
+                of(productRequestWithKcal(-1), "kcal"),
+                of(productRequestWithCarbs(-1), "carbs"),
+                of(productRequestWithProtein(-1), "protein"),
+                of(productRequestWithFat(-1), "fat")
+            );
+        }
+
+        @ParameterizedTest
+        @MethodSource("putRequestWithValuesOver9999")
+        void givenPutRequestWithValueOver9999_shouldReturnError(ProductRequest productRequest, String field)
+            throws Exception {
+            mockMvc
+                .perform(put(URI.create(ENDPOINT + TEST_PATH_VARIABLE))
+                    .contentType(APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(productRequest)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(errorResponseString(field, "Cannot exceed 9999")));
+
+            verifyNoInteractions(productService);
+        }
+
+        private static Stream<Arguments> putRequestWithValuesOver9999() {
+            return Stream.of(
+                of(productRequestWithKcal(10_000), "kcal"),
+                of(productRequestWithCarbs(10_000), "carbs"),
+                of(productRequestWithProtein(10_000), "protein"),
+                of(productRequestWithFat(10_000), "fat")
+            );
+        }
+
+        @Test
+        void givenValidPutRequest_shouldReturnOk() throws Exception {
+            mockMvc
+                .perform(put(URI.create(ENDPOINT + TEST_PATH_VARIABLE))
+                    .contentType(APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(productRequest())))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+
+            verify(productService).update(eq(UUID.fromString("382cf280-8b7a-11ee-b9d1-0242ac120002")), any());
         }
     }
 

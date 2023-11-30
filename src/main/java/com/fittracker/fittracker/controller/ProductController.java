@@ -41,6 +41,7 @@ public class ProductController {
         return productService.findById(id);
     }
 
+    //todo: integration
     @PutMapping("/product/{id}")
     public ProductResponse updateProduct(@PathVariable UUID id, @RequestBody @Valid ProductRequest productRequest) {
         return productService.update(id, productRequest);
