@@ -30,6 +30,7 @@ public class Product {
 
     @Column(insertable = false)
     private LocalDateTime updatedAt;
+
     @Column(insertable = false)
     private boolean active;
 
@@ -138,6 +139,14 @@ public class Product {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     @Override

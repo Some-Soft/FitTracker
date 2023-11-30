@@ -8,4 +8,4 @@ databaseChangeLog:
   - include:
       file: scripts/004-FIT-30-create_products_table.sql
   - include:
-      file: scripts/005-FIT-31-update_products_table_with_active_column_and_insert_trigger.sql
+      file: scripts/005-FIT-31-update_products_table_with_active_column.sql

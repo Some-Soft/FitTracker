@@ -7,9 +7,11 @@ import com.fittracker.fittracker.repository.ProductRepository;
 import com.fittracker.fittracker.request.ProductRequest;
 import com.fittracker.fittracker.response.ProductResponse;
 import com.fittracker.fittracker.security.SecurityHelper;
+import jakarta.transaction.Transactional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionSystemException;
 
 @Service
 public class ProductService {
@@ -35,29 +37,29 @@ public class ProductService {
             .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
+    @Transactional
     public ProductResponse update(UUID id, ProductRequest productRequest) {
         Product dbProduct = productRepository.findByIdAndUserIdAndActive(
-            id, SecurityHelper.getUserId(), true)
+                id, SecurityHelper.getUserId(), true)
             .orElseThrow(() -> new ProductNotFoundException(id));
 
         Product newProduct = productRequest.toProduct();
 
-        if (dbProduct.equals(newProduct)){
+        if (dbProduct.equals(newProduct)) {
             throw new ProductAlreadyExistsException();
         }
 
+        dbProduct.setActive(false);
+        productRepository.save(dbProduct);
+
+        newProduct.setId(id);
         newProduct.setUserId(SecurityHelper.getUserId());
-        Product product = productRepository.save(newProduct);
-        product.setId(id);
+        newProduct.setVersion(dbProduct.getVersion() + 1);
+
+        Product product = productRepository.saveNew(newProduct)
+            .orElseThrow(() -> new TransactionSystemException("Cannot find updated product"));
 
         return ProductResponse.fromProduct(product);
     }
 
-    private void copyProductFields(Product copyTo, Product copyFrom){
-        copyTo.setName(copyFrom.getName());
-        copyTo.setKcal(copyFrom.getKcal());
-        copyTo.setCarbs(copyFrom.getCarbs());
-        copyTo.setProtein(copyFrom.getProtein());
-        copyTo.setFat(copyFrom.getFat());
-    }
 }
