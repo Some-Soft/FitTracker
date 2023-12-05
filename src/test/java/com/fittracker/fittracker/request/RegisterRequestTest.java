@@ -2,7 +2,7 @@ package com.fittracker.fittracker.request;
 
 import static com.fittracker.fittracker.dataprovider.Entity.user;
 import static com.fittracker.fittracker.dataprovider.Request.registerRequest;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.fittracker.fittracker.dataprovider.TestHelper.compareUpTo;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +15,6 @@ class RegisterRequestTest {
         var expected = user();
         var result = request.toUser();
 
-        assertThat(result).usingRecursiveComparison().ignoringFields("id", "password").isEqualTo(expected);
+        compareUpTo(result, expected, "id", "password");
     }
 }

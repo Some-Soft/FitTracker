@@ -2,7 +2,7 @@ package com.fittracker.fittracker.request;
 
 import static com.fittracker.fittracker.dataprovider.Entity.product;
 import static com.fittracker.fittracker.dataprovider.Request.productRequest;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.fittracker.fittracker.dataprovider.TestHelper.compareUpTo;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,6 @@ class ProductRequestTest {
         var expected = product();
         var result = productRequest.toProduct();
 
-        assertThat(result).usingRecursiveComparison().ignoringFields("id", "userId", "updatedAt", "active")
-            .isEqualTo(expected);
+        compareUpTo(result, expected, "id", "userId", "updatedAt", "active");
     }
 }

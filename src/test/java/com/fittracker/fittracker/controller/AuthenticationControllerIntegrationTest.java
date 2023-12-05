@@ -6,6 +6,7 @@ import static com.fittracker.fittracker.dataprovider.Request.registerRequest;
 import static com.fittracker.fittracker.dataprovider.Request.registerRequestWithEmail;
 import static com.fittracker.fittracker.dataprovider.Request.registerRequestWithUsername;
 import static com.fittracker.fittracker.dataprovider.Response.registerResponse;
+import static com.fittracker.fittracker.dataprovider.TestHelper.compareUpTo;
 import static java.net.URI.create;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -49,7 +50,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
             var response = makeUnauthorizedPostRequest(ENDPOINT + "/register", registerRequest(), CREATED,
                 RegisterResponse.class);
 
-            assertThat(response).usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedResponse);
+            compareUpTo(response, expectedResponse, "id");
         }
 
         @Test
