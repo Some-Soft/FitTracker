@@ -2,7 +2,7 @@ package com.fittracker.fittracker.request;
 
 import static com.fittracker.fittracker.dataprovider.Entity.weight;
 import static com.fittracker.fittracker.dataprovider.Request.weightRequest;
-import static org.assertj.core.api.Assertions.assertThat;
+import static com.fittracker.fittracker.dataprovider.TestHelper.compareUpTo;
 
 import org.junit.jupiter.api.Test;
 
@@ -15,7 +15,6 @@ class WeightRequestTest {
 
         var result = weightRequest.toWeight();
 
-        assertThat(result).usingRecursiveComparison().ignoringFields("userId").isEqualTo(expectedResult);
-
+        compareUpTo(result, expectedResult, "userId");
     }
 }

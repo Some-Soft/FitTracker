@@ -6,6 +6,7 @@ import static com.fittracker.fittracker.dataprovider.Request.weightRequest;
 import static com.fittracker.fittracker.dataprovider.Request.weightRequestWithValue;
 import static com.fittracker.fittracker.dataprovider.Response.weightResponse;
 import static com.fittracker.fittracker.dataprovider.Response.weightResponseWithValue;
+import static com.fittracker.fittracker.dataprovider.TestHelper.compareUpTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
@@ -66,9 +67,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(response).isEqualTo(expectedResponse);
             var allWeights = weightRepository.findAll();
             assertThat(allWeights).hasSize(1);
-            assertThat(allWeights.iterator().next()).usingRecursiveComparison().ignoringFields("id")
-                .isEqualTo(expectedWeight);
-
+            compareUpTo(allWeights.iterator().next(), expectedWeight, "id");
         }
 
         @Test
@@ -181,8 +180,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(response).isEqualTo(expectedResponse);
             var allWeights = weightRepository.findAll();
             assertThat(allWeights).hasSize(1);
-            assertThat(allWeights.iterator().next()).usingRecursiveComparison().ignoringFields("id")
-                .isEqualTo(expectedWeight);
+            compareUpTo(allWeights.iterator().next(), expectedWeight, "id");
         }
 
         @Test
