@@ -5,6 +5,8 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.UNAUTHORIZED;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -19,6 +21,8 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 class RestExceptionHandler {
 
     private final ErrorResponseMapper errorResponseMapper;
+
+    private final Logger logger = LoggerFactory.getLogger(RestExceptionHandler.class);
 
     @Autowired
     RestExceptionHandler(ErrorResponseMapper errorResponseMapper) {
@@ -67,6 +71,7 @@ class RestExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     ResponseEntity<ErrorResponse> handleException(Exception e) {
+        logger.error(e.getMessage(), e);
         return new ResponseEntity<>(errorResponseMapper.map(e), INTERNAL_SERVER_ERROR);
     }
 

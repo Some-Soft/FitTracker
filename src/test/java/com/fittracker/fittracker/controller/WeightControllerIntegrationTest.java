@@ -74,7 +74,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
         @Test
         void givenValidPostRequestWithExistingDate_shouldReturnError() throws Exception {
             weightRepository.save(weight());
-            var expectedResponse = new ErrorResponse(null, "Weight already exists for date: 2023-10-10");
+            var expectedResponse = ErrorResponse.withMessage("Weight already exists for date: 2023-10-10");
 
             var response = makeRequestWithBody(POST, weightRequest(), BAD_REQUEST, ErrorResponse.class);
 
@@ -101,7 +101,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
             @Test
             void givenValidGetRequestWithNonexistentDate_shouldReturnError() throws Exception {
-                var expectedResponse = new ErrorResponse(null, "Weight not found for date: 2023-10-10");
+                var expectedResponse = ErrorResponse.withMessage("Weight not found for date: 2023-10-10");
 
                 var response = makeRequest(ENDPOINT + "?date=2023-10-10", GET, NOT_FOUND, ErrorResponse.class);
 
@@ -157,7 +157,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
             @Test
             void givenStartDateAfterEndDate_shouldReturnError() throws Exception {
-                var expectedResponse = new ErrorResponse(null, "Start date cannot be after end date");
+                var expectedResponse = ErrorResponse.withMessage("Start date cannot be after end date");
 
                 var response = makeRequest(ENDPOINT + "s?startDate=2023-01-10&endDate=2023-01-09", GET, BAD_REQUEST,
                     ErrorResponse.class);
@@ -171,7 +171,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
     class Put {
 
         @Test
-        void givenValidPutRequest_shouldUpdateAndReturnWeight() throws Exception {
+        void givenValidPutRequest_shouldUpdateAndReturnWeightResponse() throws Exception {
             weightRepository.save(weight());
             var expectedResponse = weightResponseWithValue(14.3);
             var expectedWeight = weightWithValue(14.3);
@@ -187,7 +187,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidPutRequestWithNonexistentDate_shouldReturnError() throws Exception {
-            var expectedResponse = new ErrorResponse(null, "Weight not found for date: 2023-10-10");
+            var expectedResponse = ErrorResponse.withMessage("Weight not found for date: 2023-10-10");
 
             var response = makeRequestWithBody(PUT, weightRequest(), NOT_FOUND, ErrorResponse.class);
 
@@ -211,7 +211,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
         @Test
         void givenValidDeleteRequestWithNonexistentDate_shouldReturnError() throws Exception {
             weightRepository.save(weight());
-            var expectedResponse = new ErrorResponse(null, "Weight not found for date: 2023-08-02");
+            var expectedResponse = ErrorResponse.withMessage("Weight not found for date: 2023-08-02");
 
             var response = makeRequest(ENDPOINT + "?date=2023-08-02", DELETE, NOT_FOUND, ErrorResponse.class);
 

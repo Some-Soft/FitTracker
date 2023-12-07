@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -29,6 +30,9 @@ public class Product {
 
     @Column(insertable = false)
     private LocalDateTime updatedAt;
+
+    @Column(insertable = false)
+    private boolean active;
 
     public Product() {
     }
@@ -52,7 +56,7 @@ public class Product {
     }
 
     public Product(UUID id, int version, String name, int kcal, int carbs, int protein, int fat, UUID userId,
-        LocalDateTime updatedAt) {
+        LocalDateTime updatedAt, boolean active) {
         this.id = id;
         this.version = version;
         this.name = name;
@@ -62,6 +66,7 @@ public class Product {
         this.fat = fat;
         this.userId = userId;
         this.updatedAt = updatedAt;
+        this.active = active;
     }
 
     public UUID getId() {
@@ -136,4 +141,36 @@ public class Product {
         this.updatedAt = updatedAt;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public boolean hasEqualData(Product product) {
+        if (product == null) {
+            return false;
+        }
+
+        return kcal == product.kcal && carbs == product.carbs && protein == product.protein && fat == product.fat
+            && Objects.equals(name, product.name);
+    }
+
+    @Override
+    public String toString() {
+        return "Product{" +
+            "id=" + id +
+            ", version=" + version +
+            ", name='" + name + '\'' +
+            ", kcal=" + kcal +
+            ", carbs=" + carbs +
+            ", protein=" + protein +
+            ", fat=" + fat +
+            ", userId=" + userId +
+            ", updatedAt=" + updatedAt +
+            ", active=" + active +
+            '}';
+    }
 }

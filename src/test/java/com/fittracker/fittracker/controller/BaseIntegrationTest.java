@@ -92,7 +92,13 @@ abstract class BaseIntegrationTest {
 
     protected <T> T makeRequestWithBody(HttpMethod httpMethod, Object requestBody, HttpStatus expectedStatus,
         Class<T> responseClass) throws Exception {
-        var responseString = mockMvc.perform(request(httpMethod, create(getEndpoint()))
+        return makeRequestWithBody(getEndpoint(), httpMethod, requestBody, expectedStatus, responseClass);
+    }
+
+    protected <T> T makeRequestWithBody(String endpoint, HttpMethod httpMethod, Object requestBody,
+        HttpStatus expectedStatus,
+        Class<T> responseClass) throws Exception {
+        var responseString = mockMvc.perform(request(httpMethod, create(endpoint))
                 .header(AUTHORIZATION_HEADER_NAME, AUTHORIZATION_HEADER_VALUE_PREFIX + TOKEN)
                 .contentType(APPLICATION_JSON)
                 .content(mapper.writeValueAsString(requestBody)))
@@ -101,6 +107,7 @@ abstract class BaseIntegrationTest {
 
         return mapper.readValue(responseString, responseClass);
     }
+
 
     private String performRequest(String endpoint, HttpMethod httpMethod, HttpStatus expectedStatus) throws Exception {
         return mockMvc.perform(request(httpMethod, create(endpoint))

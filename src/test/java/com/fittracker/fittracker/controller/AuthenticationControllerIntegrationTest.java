@@ -54,7 +54,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenUsernameAlreadyExists_shouldReturnErrorResponse() throws Exception {
-            var expectedResponse = new ErrorResponse(null,
+            var expectedResponse = ErrorResponse.withMessage(
                 "User already exists for username/email provided: user/anotherUserEmail@example.com");
 
             var response = makeUnauthorizedPostRequest(ENDPOINT + "/register",
@@ -65,7 +65,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenEmailAlreadyExists_shouldReturnErrorResponse() throws Exception {
-            var expectedResponse = new ErrorResponse(null,
+            var expectedResponse = ErrorResponse.withMessage(
                 "User already exists for username/email provided: anotherUsername/user@example.com");
 
             var response = makeUnauthorizedPostRequest(ENDPOINT + "/register",
@@ -88,7 +88,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenNonexistentUser_shouldReturnErrorResponse() throws Exception {
-            var expectedResponse = new ErrorResponse(null, "Bad credentials");
+            var expectedResponse = ErrorResponse.withMessage("Bad credentials");
 
             var response = makeUnauthorizedPostRequest(ENDPOINT + "/login", loginRequestWithUsername("badUsername"),
                 UNAUTHORIZED, ErrorResponse.class);
@@ -98,7 +98,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
 
         @Test
         void givenWrongPassword_shouldReturnErrorResponse() throws Exception {
-            var expectedResponse = new ErrorResponse(null, "Bad credentials");
+            var expectedResponse = ErrorResponse.withMessage("Bad credentials");
 
             var response = makeUnauthorizedPostRequest(ENDPOINT + "/login", loginRequestWithPassword("badPassword"),
                 UNAUTHORIZED, ErrorResponse.class);
