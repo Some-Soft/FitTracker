@@ -20,7 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfiguration {
 
-    private static final String[] PERMIT_ALL_ENDPOINTS = new String[]{"/auth/register", "/auth/login"};
+    private static final String[] PERMIT_ALL_ENDPOINTS = new String[]{"/health", "/auth/register", "/auth/login"};
 
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
