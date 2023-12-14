@@ -1,0 +1,17 @@
+name: CI/CD test
+run-name: Run number - ${{ github.run.number }} Run attempt - ${{ github.run.attempt }}
+
+on:
+  push:
+    branches: [ "ci-cd-test" ]
+
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          ref: 'ci-cd-test'
+
+      - run: echo "This job's status is ${{ job.status }}."
