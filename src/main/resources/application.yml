@@ -6,8 +6,8 @@ management:
 spring:
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:5432/fittracker
-    password: password
-    username: user
+    password: ${DB_PASSWORD:password}
+    username: ${DB_USER:user}
 
 security:
   jwt:
