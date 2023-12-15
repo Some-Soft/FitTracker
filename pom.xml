@@ -8,7 +8,7 @@
     <version>3.1.4</version>
     <relativePath/> <!-- lookup parent from repository -->
   </parent>
-  <groupId>com.fittracker</groupId>
+  <groupId>com.somesoft</groupId>
   <artifactId>fittracker</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>fittracker</name>
