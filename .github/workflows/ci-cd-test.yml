@@ -45,12 +45,12 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
       - name: Remove all files from target except for jar
-        run: cd target && shopt -s extglob && rm -i !(*.jar)
+        run: mkdir artifacts && cp target/*.jar artifacts
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: Package
-          path: target
+          path: artifacts
           retention-days: 1
 
 #  AssumeRoleAndCallIdentity:
