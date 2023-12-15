@@ -54,6 +54,7 @@ jobs:
           retention-days: 1
 
   deploy-artifact:
+    needs: build
     runs-on:
       ubuntu-latest
     steps:
@@ -61,8 +62,8 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: packaged-jar
-      - name: check artifact
-        run: ls -la artifacts
+      - name: check files
+        run: ls -la
 
 
 
