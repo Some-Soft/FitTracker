@@ -49,9 +49,22 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
-          name: Package
+          name: packaged-jar
           path: artifacts
           retention-days: 1
+
+  deploy-artifact:
+    runs-on:
+      ubuntu-latest
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: packaged-jar
+      - name: check artifact
+        run: ls -la artifacts
+
+
 
 #  AssumeRoleAndCallIdentity:
 #    runs-on: ubuntu-latest
