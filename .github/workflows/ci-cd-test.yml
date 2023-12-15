@@ -45,7 +45,7 @@ jobs:
       - name: Build with Maven
         run: ./mvnw clean package -DskipTests
       - name: Create artifacts directory with jar and Dockerfile
-        run: mkdir artifacts && cp {target/*.jar,Dockerfile} artifacts
+        run: mkdir -p artifacts/target && cp Dockerfile artifacts && cp target/*.jar artifacts/target
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
