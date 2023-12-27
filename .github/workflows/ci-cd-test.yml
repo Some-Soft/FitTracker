@@ -72,7 +72,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
       - name: Login to Amazon ECR
         id: login-ecr-public
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@v1
         with:
           registry-type: public
 #      - name: Build, tag, and push image to Amazon ECR
