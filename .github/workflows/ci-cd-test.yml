@@ -71,16 +71,30 @@ jobs:
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ env.AWS_REGION }}
       - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
+        id: login-ecr-public
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          registry-type: public
+#      - name: Build, tag, and push image to Amazon ECR
+#        id: build-image
+#        env:
+#          IMAGE_TAG: ${{ github.sha }}
+#        run: |
+#          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+#          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+#          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+
+      - name: Build, tag, and push docker image to Amazon ECR Public
         env:
+          REGISTRY: ${{ steps.login-ecr-public.outputs.registry }}
+          REGISTRY_ALIAS: h2u9c5q5
+          REPOSITORY: fittracker
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+          docker build -t $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG .
+          docker push $REGISTRY/$REGISTRY_ALIAS/$REPOSITORY:$IMAGE_TAG
+
 
 #      - name: Fill in the new image ID in the Amazon ECS task definition
 #        id: task-def
