@@ -1,9 +1,14 @@
 package com.somesoft.fittracker.entity;
 
+import static com.somesoft.fittracker.dataprovider.Entity.product;
+import static com.somesoft.fittracker.dataprovider.Entity.productWithCarbs;
+import static com.somesoft.fittracker.dataprovider.Entity.productWithFat;
+import static com.somesoft.fittracker.dataprovider.Entity.productWithKcal;
+import static com.somesoft.fittracker.dataprovider.Entity.productWithName;
+import static com.somesoft.fittracker.dataprovider.Entity.productWithProtein;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.somesoft.fittracker.dataprovider.Entity;
 import java.time.LocalDateTime;
 import java.util.Random;
 import java.util.UUID;
@@ -26,12 +31,12 @@ class ProductTest {
 
         @BeforeEach
         public void beforeEach() {
-            product = randomizeNotComparedFields(Entity.product());
+            product = randomizeNotComparedFields(product());
         }
 
         @Test
         void givenProductsOfTheSameNameKcalCarbsProteinAndFat_shouldReturnTrue() {
-            assertTrue(product.hasEqualData(Entity.product()));
+            assertTrue(product.hasEqualData(product()));
         }
 
         @ParameterizedTest
@@ -42,11 +47,11 @@ class ProductTest {
 
         public static Stream<Arguments> unequalDataProvider() {
             return Stream.of(
-                Arguments.of(Entity.productWithName("apple")),
-                Arguments.of(Entity.productWithKcal(300)),
-                Arguments.of(Entity.productWithCarbs(5)),
-                Arguments.of(Entity.productWithProtein(70)),
-                Arguments.of(Entity.productWithFat(50))
+                Arguments.of(productWithName("apple")),
+                Arguments.of(productWithKcal(300)),
+                Arguments.of(productWithCarbs(5)),
+                Arguments.of(productWithProtein(70)),
+                Arguments.of(productWithFat(50))
             );
         }
 

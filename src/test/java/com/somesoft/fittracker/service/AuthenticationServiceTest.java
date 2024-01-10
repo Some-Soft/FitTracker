@@ -18,7 +18,6 @@ import com.somesoft.fittracker.entity.User;
 import com.somesoft.fittracker.exception.UserAlreadyExistsException;
 import com.somesoft.fittracker.repository.UserRepository;
 import com.somesoft.fittracker.security.JwtUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -74,7 +73,7 @@ class AuthenticationServiceTest {
             var expected = registerResponse();
             var result = authenticationService.register(registerRequest());
 
-            Assertions.assertThat(result).isEqualTo(expected);
+            assertThat(result).isEqualTo(expected);
             verify(userRepository).existsByUsernameOrEmail("user", "user@example.com");
             verify(passwordEncoder).encode(TEST_PASSWORD);
             verify(userRepository).save(userCaptor.capture());
@@ -112,7 +111,7 @@ class AuthenticationServiceTest {
 
             var result = authenticationService.login(loginRequest());
 
-            Assertions.assertThat(result).isEqualTo(loginResponse());
+            assertThat(result).isEqualTo(loginResponse());
             verify(jwtUtils).generateToken(authentication);
             verify(authenticationManager).authenticate(USERNAME_PASSWORD_AUTHENTICATION_TOKEN);
             verifyNoMoreInteractions(jwtUtils);

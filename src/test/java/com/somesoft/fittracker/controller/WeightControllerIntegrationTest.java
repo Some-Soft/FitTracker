@@ -1,5 +1,11 @@
 package com.somesoft.fittracker.controller;
 
+import static com.somesoft.fittracker.dataprovider.Entity.weight;
+import static com.somesoft.fittracker.dataprovider.Entity.weightWithValue;
+import static com.somesoft.fittracker.dataprovider.Request.weightRequest;
+import static com.somesoft.fittracker.dataprovider.Request.weightRequestWithValue;
+import static com.somesoft.fittracker.dataprovider.Response.weightResponse;
+import static com.somesoft.fittracker.dataprovider.Response.weightResponseWithValue;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
@@ -15,9 +21,6 @@ import com.somesoft.fittracker.entity.Weight;
 import com.somesoft.fittracker.exception.ErrorResponse;
 import com.somesoft.fittracker.repository.WeightRepository;
 import com.somesoft.fittracker.response.WeightResponse;
-import com.somesoft.fittracker.dataprovider.Entity;
-import com.somesoft.fittracker.dataprovider.Request;
-import com.somesoft.fittracker.dataprovider.Response;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -55,10 +58,10 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidPostRequest_shouldSaveAnReturnWeight() throws Exception {
-            var expectedResponse = Response.weightResponse();
-            var expectedWeight = Entity.weight();
+            var expectedResponse = weightResponse();
+            var expectedWeight = weight();
 
-            var response = makeRequestWithBody(POST, Request.weightRequest(), CREATED, WeightResponse.class);
+            var response = makeRequestWithBody(POST, weightRequest(), CREATED, WeightResponse.class);
 
             assertThat(response).isEqualTo(expectedResponse);
             var allWeights = weightRepository.findAll();
@@ -70,10 +73,10 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidPostRequestWithExistingDate_shouldReturnError() throws Exception {
-            weightRepository.save(Entity.weight());
+            weightRepository.save(weight());
             var expectedResponse = ErrorResponse.withMessage("Weight already exists for date: 2023-10-10");
 
-            var response = makeRequestWithBody(POST, Request.weightRequest(), BAD_REQUEST, ErrorResponse.class);
+            var response = makeRequestWithBody(POST, weightRequest(), BAD_REQUEST, ErrorResponse.class);
 
             assertThat(response).isEqualTo(expectedResponse);
             assertThat(weightRepository.findAll()).hasSize(1);
@@ -88,8 +91,8 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
             @Test
             void givenValidGetRequestWithExistingDate_shouldReturnWeight() throws Exception {
-                weightRepository.save(Entity.weight());
-                var expectedResponse = Response.weightResponse();
+                weightRepository.save(weight());
+                var expectedResponse = weightResponse();
 
                 var response = makeRequest(ENDPOINT + "?date=2023-10-10", GET, OK, WeightResponse.class);
 
@@ -169,11 +172,11 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidPutRequest_shouldUpdateAndReturnWeightResponse() throws Exception {
-            weightRepository.save(Entity.weight());
-            var expectedResponse = Response.weightResponseWithValue(14.3);
-            var expectedWeight = Entity.weightWithValue(14.3);
+            weightRepository.save(weight());
+            var expectedResponse = weightResponseWithValue(14.3);
+            var expectedWeight = weightWithValue(14.3);
 
-            var response = makeRequestWithBody(PUT, Request.weightRequestWithValue(14.3), OK, WeightResponse.class);
+            var response = makeRequestWithBody(PUT, weightRequestWithValue(14.3), OK, WeightResponse.class);
 
             assertThat(response).isEqualTo(expectedResponse);
             var allWeights = weightRepository.findAll();
@@ -186,7 +189,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
         void givenValidPutRequestWithNonexistentDate_shouldReturnError() throws Exception {
             var expectedResponse = ErrorResponse.withMessage("Weight not found for date: 2023-10-10");
 
-            var response = makeRequestWithBody(PUT, Request.weightRequest(), NOT_FOUND, ErrorResponse.class);
+            var response = makeRequestWithBody(PUT, weightRequest(), NOT_FOUND, ErrorResponse.class);
 
             assertThat(response).isEqualTo(expectedResponse);
         }
@@ -197,7 +200,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidDeleteRequest_shouldDeleteAndReturnNoContent() throws Exception {
-            weightRepository.save(Entity.weight());
+            weightRepository.save(weight());
 
             var response = makeRequest(ENDPOINT + "?date=2023-10-10", DELETE, NO_CONTENT);
 
@@ -207,7 +210,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidDeleteRequestWithNonexistentDate_shouldReturnError() throws Exception {
-            weightRepository.save(Entity.weight());
+            weightRepository.save(weight());
             var expectedResponse = ErrorResponse.withMessage("Weight not found for date: 2023-08-02");
 
             var response = makeRequest(ENDPOINT + "?date=2023-08-02", DELETE, NOT_FOUND, ErrorResponse.class);
