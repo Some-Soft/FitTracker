@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.somesoft.fittracker.dataprovider.Entity;
 import com.somesoft.fittracker.dataprovider.Request;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 class WeightRequestTest {
@@ -16,7 +15,6 @@ class WeightRequestTest {
 
         var result = weightRequest.toWeight();
 
-        Assertions.assertThat(result).usingRecursiveComparison().ignoringFields("userId").isEqualTo(expectedResult);
-
+        assertThat(result).usingRecursiveComparison().ignoringFields("userId").isEqualTo(expectedResult);
     }
 }
