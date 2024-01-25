@@ -1,11 +1,13 @@
 package com.somesoft.fittracker.controller;
 
+
 import static com.somesoft.fittracker.dataprovider.Entity.weight;
 import static com.somesoft.fittracker.dataprovider.Entity.weightWithValue;
 import static com.somesoft.fittracker.dataprovider.Request.weightRequest;
 import static com.somesoft.fittracker.dataprovider.Request.weightRequestWithValue;
 import static com.somesoft.fittracker.dataprovider.Response.weightResponse;
 import static com.somesoft.fittracker.dataprovider.Response.weightResponseWithValue;
+import static com.somesoft.fittracker.dataprovider.TestHelper.assertEqualRecursiveIgnoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
@@ -66,9 +68,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(response).isEqualTo(expectedResponse);
             var allWeights = weightRepository.findAll();
             assertThat(allWeights).hasSize(1);
-            assertThat(allWeights.iterator().next()).usingRecursiveComparison().ignoringFields("id")
-                .isEqualTo(expectedWeight);
-
+            assertEqualRecursiveIgnoring(allWeights.iterator().next(), expectedWeight, "id");
         }
 
         @Test
@@ -181,8 +181,7 @@ public class WeightControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(response).isEqualTo(expectedResponse);
             var allWeights = weightRepository.findAll();
             assertThat(allWeights).hasSize(1);
-            assertThat(allWeights.iterator().next()).usingRecursiveComparison().ignoringFields("id")
-                .isEqualTo(expectedWeight);
+            assertEqualRecursiveIgnoring(allWeights.iterator().next(), expectedWeight, "id");
         }
 
         @Test

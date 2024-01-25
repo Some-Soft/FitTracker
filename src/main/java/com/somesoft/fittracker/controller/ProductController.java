@@ -1,6 +1,7 @@
 package com.somesoft.fittracker.controller;
 
 import static org.springframework.http.HttpStatus.CREATED;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.somesoft.fittracker.request.ProductRequest;
@@ -9,6 +10,7 @@ import com.somesoft.fittracker.service.ProductService;
 import jakarta.validation.Valid;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -42,7 +44,14 @@ public class ProductController {
     }
 
     @PutMapping("/product/{id}")
+    @ResponseStatus(OK)
     public ProductResponse updateProduct(@PathVariable UUID id, @RequestBody @Valid ProductRequest productRequest) {
         return productService.update(id, productRequest);
+    }
+
+    @DeleteMapping("/product/{id}")
+    @ResponseStatus(NO_CONTENT)
+    public void deleteProduct(@PathVariable UUID id) {
+        productService.delete(id);
     }
 }

@@ -5,6 +5,7 @@ import static com.somesoft.fittracker.dataprovider.Request.loginRequest;
 import static com.somesoft.fittracker.dataprovider.Request.registerRequest;
 import static com.somesoft.fittracker.dataprovider.Response.loginResponse;
 import static com.somesoft.fittracker.dataprovider.Response.registerResponse;
+import static com.somesoft.fittracker.dataprovider.TestHelper.assertEqualRecursiveIgnoring;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -77,9 +78,7 @@ class AuthenticationServiceTest {
             verify(userRepository).existsByUsernameOrEmail("user", "user@example.com");
             verify(passwordEncoder).encode(TEST_PASSWORD);
             verify(userRepository).save(userCaptor.capture());
-            assertThat(userCaptor.getValue()).usingRecursiveComparison()
-                .ignoringFields("id")
-                .isEqualTo(userWithPassword("encodedPassword"));
+            assertEqualRecursiveIgnoring(userCaptor.getValue(), userWithPassword("encodedPassword"), "id");
             verifyNoMoreInteractions(userRepository);
         }
 

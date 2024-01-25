@@ -7,6 +7,7 @@ import static com.somesoft.fittracker.dataprovider.Request.productRequest;
 import static com.somesoft.fittracker.dataprovider.Request.productRequestWithKcal;
 import static com.somesoft.fittracker.dataprovider.Response.productResponse;
 import static com.somesoft.fittracker.dataprovider.Response.productResponseWithKcal;
+import static com.somesoft.fittracker.dataprovider.TestHelper.assertEqualRecursiveIgnoring;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +26,7 @@ import com.somesoft.fittracker.repository.ProductRepository;
 import com.somesoft.fittracker.security.SecurityHelper;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -60,31 +62,34 @@ class ProductServiceTest {
         mockedStatic.close();
     }
 
+    @AfterEach
+    public void afterEach() {
+        verifyNoMoreInteractions(productRepository);
+    }
+
     @Nested
     class FindById {
 
         @Test
         void givenIdFound_shouldReturnProductResponse() {
-            when(productRepository.findByIdAndUserId(any(), any())).thenReturn(
-                of(product()));
+
+            when(productRepository.findByIdAndUserIdAndActiveIsTrue(any(), any())).thenReturn(of(product()));
 
             var result = productService.findById(TEST_PRODUCT_UUID);
 
             assertThat(result).isEqualTo(productResponse());
-            verify(productRepository).findByIdAndUserId(TEST_PRODUCT_UUID, TEST_USER_UUID);
-            verifyNoMoreInteractions(productRepository);
+            verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
         }
 
         @Test
         void givenNoIdFound_shouldThrowProductNotFoundException() {
-            when(productRepository.findByIdAndUserId(any(), any())).thenReturn(empty());
+            when(productRepository.findByIdAndUserIdAndActiveIsTrue(any(), any())).thenReturn(empty());
 
             assertThatThrownBy(() -> productService.findById(TEST_PRODUCT_UUID))
                 .isInstanceOf(ProductNotFoundException.class)
                 .hasMessageContaining("Product not found for id: 382cf280-8b7a-11ee-b9d1-0242ac120002");
 
-            verify(productRepository).findByIdAndUserId(TEST_PRODUCT_UUID, TEST_USER_UUID);
-            verifyNoMoreInteractions(productRepository);
+            verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
         }
     }
 
@@ -97,9 +102,7 @@ class ProductServiceTest {
         assertThat(result).isEqualTo(productResponse());
         verify(productRepository).save(productCaptor.capture());
 
-        assertThat(productCaptor.getValue()).usingRecursiveComparison().ignoringFields("id", "updatedAt", "active")
-            .isEqualTo(product());
-        verifyNoMoreInteractions(productRepository);
+        assertEqualRecursiveIgnoring(productCaptor.getValue(), product(), "id", "updatedAt", "active");
     }
 
     @Nested
@@ -116,15 +119,12 @@ class ProductServiceTest {
             newProduct.setVersion(1);
             newProduct.setActive(false);
 
-            assertThat(response).usingRecursiveComparison().isEqualTo(expectedResponse);
+            assertThat(response).isEqualTo(expectedResponse);
             verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
             verify(productRepository).save(productCaptor.capture());
-            assertThat(productCaptor.getValue()).usingRecursiveComparison().isEqualTo(productWithActive(false));
+            assertEqualRecursiveIgnoring(productCaptor.getValue(), productWithActive(false));
             verify(productRepository).saveNew(productCaptor.capture());
-            assertThat(productCaptor.getValue()).usingRecursiveComparison().ignoringFields("updatedAt")
-                .isEqualTo(newProduct);
-
-            verifyNoMoreInteractions(productRepository);
+            assertEqualRecursiveIgnoring(productCaptor.getValue(), newProduct, "updatedAt");
         }
 
         @Test
@@ -137,7 +137,6 @@ class ProductServiceTest {
                 .hasMessageContaining("Product not found for id: 382cf280-8b7a-11ee-b9d1-0242ac120002");
 
             verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
-            verifyNoMoreInteractions(productRepository);
         }
 
         @Test
@@ -150,7 +149,6 @@ class ProductServiceTest {
                 .hasMessageContaining("Updated product must differ");
 
             verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
-            verifyNoMoreInteractions(productRepository);
         }
 
         @Test
@@ -168,10 +166,35 @@ class ProductServiceTest {
             verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
             verify(productRepository).save(any());
             verify(productRepository).saveNew(any());
-            verifyNoMoreInteractions(productRepository);
+        }
+    }
+
+    @Nested
+    class Delete {
+
+        @Test
+        void givenActiveIdFound_shouldSetActiveToFalseAndSave() {
+            when(productRepository.findByIdAndUserIdAndActiveIsTrue(any(), any()))
+                .thenReturn(of(product()));
+
+            productService.delete(TEST_PRODUCT_UUID);
+
+            verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
+            verify(productRepository).save(productCaptor.capture());
+            assertEqualRecursiveIgnoring(productCaptor.getValue(), productWithActive(false));
         }
 
+        @Test
+        void givenNoActiveIdFound_shouldReturnError() {
+            when(productRepository.findByIdAndUserIdAndActiveIsTrue(any(), any()))
+                .thenReturn(empty());
 
+            assertThatThrownBy(() -> productService.delete(TEST_PRODUCT_UUID))
+                .isInstanceOf(ProductNotFoundException.class)
+                .hasMessageContaining("Product not found for id: 382cf280-8b7a-11ee-b9d1-0242ac120002");
+
+            verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
+        }
     }
 
 

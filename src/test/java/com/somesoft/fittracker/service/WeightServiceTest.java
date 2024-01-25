@@ -8,6 +8,7 @@ import static com.somesoft.fittracker.dataprovider.Request.weightRequestWithValu
 import static com.somesoft.fittracker.dataprovider.Response.weightResponse;
 import static com.somesoft.fittracker.dataprovider.Response.weightResponseWithDate;
 import static com.somesoft.fittracker.dataprovider.Response.weightResponseWithValue;
+import static com.somesoft.fittracker.dataprovider.TestHelper.assertEqualRecursiveIgnoring;
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,6 +31,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -67,6 +69,11 @@ public class WeightServiceTest {
         mockedStatic.close();
     }
 
+    @AfterEach
+    public void afterEach() {
+        verifyNoMoreInteractions(weightRepository);
+    }
+
     @Nested
     class FindByDate {
 
@@ -78,7 +85,6 @@ public class WeightServiceTest {
 
             assertThat(result).isEqualTo(weightResponse());
             verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
-            verifyNoMoreInteractions(weightRepository);
         }
 
         @Test
@@ -90,7 +96,6 @@ public class WeightServiceTest {
                 .hasMessageContaining("Weight not found for date: 2023-10-10");
 
             verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
-            verifyNoMoreInteractions(weightRepository);
         }
 
     }
@@ -109,9 +114,7 @@ public class WeightServiceTest {
             assertThat(result).isEqualTo(weightResponse());
             verify(weightRepository).existsByDateAndUserId(TEST_DATE, TEST_UUID);
             verify(weightRepository).save(weightCaptor.capture());
-
-            assertThat(weightCaptor.getValue()).usingRecursiveComparison().isEqualTo(weight());
-            verifyNoMoreInteractions(weightRepository);
+            assertEqualRecursiveIgnoring(weightCaptor.getValue(), weight());
         }
 
         @Test
@@ -122,7 +125,6 @@ public class WeightServiceTest {
                 .isInstanceOf(WeightAlreadyExistsException.class)
                 .hasMessageContaining("Weight already exists for date: 2023-10-10");
             verify(weightRepository).existsByDateAndUserId(TEST_DATE, TEST_UUID);
-            verifyNoMoreInteractions(weightRepository);
         }
     }
 
@@ -143,9 +145,7 @@ public class WeightServiceTest {
             assertThat(result).isEqualTo(expected);
             verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
             verify(weightRepository).save(weightCaptor.capture());
-            assertThat(weightCaptor.getValue()).usingRecursiveComparison().isEqualTo(updatedWeight);
-            verifyNoMoreInteractions(weightRepository);
-
+            assertEqualRecursiveIgnoring(weightCaptor.getValue(), updatedWeight);
         }
 
         @Test
@@ -156,7 +156,6 @@ public class WeightServiceTest {
                 .isInstanceOf(WeightNotFoundException.class)
                 .hasMessageContaining("Weight not found for date: 2023-10-10");
             verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
-            verifyNoMoreInteractions(weightRepository);
         }
     }
 
@@ -171,9 +170,7 @@ public class WeightServiceTest {
 
             verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
             verify(weightRepository).delete(weightCaptor.capture());
-            assertThat(weightCaptor.getValue()).usingRecursiveComparison()
-                .isEqualTo(weight());
-            verifyNoMoreInteractions(weightRepository);
+            assertEqualRecursiveIgnoring(weightCaptor.getValue(), weight());
         }
 
         @Test
@@ -184,7 +181,6 @@ public class WeightServiceTest {
                 .isInstanceOf(WeightNotFoundException.class)
                 .hasMessageContaining("Weight not found for date: 2023-10-10");
             verify(weightRepository).findByDateAndUserId(TEST_DATE, TEST_UUID);
-            verifyNoMoreInteractions(weightRepository);
         }
     }
 
@@ -213,7 +209,6 @@ public class WeightServiceTest {
 
             assertThat(result).isEqualTo(expected);
             verify(weightRepository).findByDateBetweenAndUserIdOrderByDate(TEST_DATE, endDate, TEST_UUID);
-            verifyNoMoreInteractions(weightRepository);
         }
 
         @Test
@@ -225,8 +220,6 @@ public class WeightServiceTest {
 
             assertThat(result).isEmpty();
             verify(weightRepository).findByDateBetweenAndUserIdOrderByDate(TEST_DATE, endDate, TEST_UUID);
-
-            verifyNoMoreInteractions(weightRepository);
         }
 
     }

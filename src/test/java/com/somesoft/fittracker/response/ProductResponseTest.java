@@ -15,4 +15,5 @@ class ProductResponseTest {
 
         assertThat(result).isEqualTo(expected);
     }
+
 }

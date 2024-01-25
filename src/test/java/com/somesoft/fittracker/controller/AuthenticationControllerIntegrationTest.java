@@ -1,11 +1,13 @@
 package com.somesoft.fittracker.controller;
 
+
 import static com.somesoft.fittracker.dataprovider.Request.loginRequestWithPassword;
 import static com.somesoft.fittracker.dataprovider.Request.loginRequestWithUsername;
 import static com.somesoft.fittracker.dataprovider.Request.registerRequest;
 import static com.somesoft.fittracker.dataprovider.Request.registerRequestWithEmail;
 import static com.somesoft.fittracker.dataprovider.Request.registerRequestWithUsername;
 import static com.somesoft.fittracker.dataprovider.Response.registerResponse;
+import static com.somesoft.fittracker.dataprovider.TestHelper.assertEqualRecursiveIgnoring;
 import static java.net.URI.create;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
@@ -49,7 +51,7 @@ public class AuthenticationControllerIntegrationTest extends BaseIntegrationTest
             var response = makeUnauthorizedPostRequest(ENDPOINT + "/register", registerRequest(), CREATED,
                 RegisterResponse.class);
 
-            assertThat(response).usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedResponse);
+            assertEqualRecursiveIgnoring(response, expectedResponse, "id");
         }
 
         @Test

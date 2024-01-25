@@ -32,7 +32,7 @@ public class ProductService {
     }
 
     public ProductResponse findById(UUID id) {
-        return productRepository.findByIdAndUserId(id, SecurityHelper.getUserId())
+        return productRepository.findByIdAndUserIdAndActiveIsTrue(id, SecurityHelper.getUserId())
             .map(ProductResponse::fromProduct)
             .orElseThrow(() -> new ProductNotFoundException(id));
     }
@@ -53,6 +53,16 @@ public class ProductService {
         productRepository.save(dbProduct);
 
         return saveUpdatedProduct(dbProduct, updatedProduct);
+    }
+
+    public void delete(UUID id) {
+        Product dbProduct = productRepository.findByIdAndUserIdAndActiveIsTrue(
+                id, SecurityHelper.getUserId())
+            .orElseThrow(() -> new ProductNotFoundException(id));
+
+        dbProduct.setActive(false);
+
+        productRepository.save(dbProduct);
     }
 
     private ProductResponse saveUpdatedProduct(Product dbProduct, Product updatedProduct) {
