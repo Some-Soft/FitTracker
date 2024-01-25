@@ -15,8 +15,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.springframework.context.annotation.FilterType.ASSIGNABLE_TYPE;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -85,7 +87,6 @@ public class ProductControllerValidationTest {
             );
         }
 
-
     }
 
     @Nested
@@ -107,9 +108,9 @@ public class ProductControllerValidationTest {
 
         private static Stream<Arguments> postRequestWithBlankNames() {
             return Stream.of(
-                of(productRequestWithName(null)),
-                of(productRequestWithName("")),
-                of(productRequestWithName("   "))
+                Arguments.of(productRequestWithName(null)),
+                Arguments.of(productRequestWithName("")),
+                Arguments.of(productRequestWithName("   "))
             );
         }
 
@@ -192,9 +193,9 @@ public class ProductControllerValidationTest {
 
         private static Stream<Arguments> putRequestWithBlankNames() {
             return Stream.of(
-                of(productRequestWithName(null)),
-                of(productRequestWithName("")),
-                of(productRequestWithName("   "))
+                Arguments.of(productRequestWithName(null)),
+                Arguments.of(productRequestWithName("")),
+                Arguments.of(productRequestWithName("   "))
             );
         }
 
@@ -256,9 +257,34 @@ public class ProductControllerValidationTest {
         }
     }
 
+    @Nested
+    class Delete {
+
+        @ParameterizedTest
+        @MethodSource("deleteProductRequestTestDataProvider")
+        void givenDeleteUriRequest_shouldReturnResponse(String params, HttpStatus responseStatus, String responseBody,
+            VerificationMode numberOfServiceInvocations) throws Exception {
+            mockMvc
+                .perform(delete(URI.create(ENDPOINT + params)))
+                .andExpect(status().is(responseStatus.value()))
+                .andExpect(content().string(responseBody));
+
+            verify(productService, numberOfServiceInvocations).delete(any());
+        }
+
+        private static Stream<Arguments> deleteProductRequestTestDataProvider() {
+            return Stream.of(
+                of("/notUUID", BAD_REQUEST, errorResponseString("id", "Invalid data type"), never()),
+                of("/57a407b2-4a54-4ae7-b93c-9e3227af26bg", BAD_REQUEST,
+                    errorResponseString("id", "Invalid data type"), never()),
+                of("/382cf280-8b7a-11ee-b9d1-0242ac120002", NO_CONTENT, "", times(1)),
+                of("/0023cfab-f91d-4428-8e76-dfade3b9c3fc", NO_CONTENT, "", times(1))
+            );
+        }
+    }
+
     private static String errorResponseString(String field, String message) {
         return format("{\"field\":\"%s\",\"message\":\"%s\"}", field, message);
     }
-
 
 }

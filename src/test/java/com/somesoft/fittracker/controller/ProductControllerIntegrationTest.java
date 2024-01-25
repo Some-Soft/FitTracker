@@ -1,18 +1,23 @@
 package com.somesoft.fittracker.controller;
 
+
 import static com.somesoft.fittracker.dataprovider.Entity.product;
+import static com.somesoft.fittracker.dataprovider.Entity.productWithActive;
 import static com.somesoft.fittracker.dataprovider.Request.productRequest;
 import static com.somesoft.fittracker.dataprovider.Request.productRequestWithKcal;
 import static com.somesoft.fittracker.dataprovider.Response.productResponse;
 import static com.somesoft.fittracker.dataprovider.Response.productResponseWithKcal;
+import static com.somesoft.fittracker.dataprovider.TestHelper.assertEqualRecursiveIgnoring;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.http.HttpMethod.DELETE;
 import static org.springframework.http.HttpMethod.GET;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.NO_CONTENT;
 import static org.springframework.http.HttpStatus.OK;
 
 import com.somesoft.fittracker.entity.Product;
@@ -20,10 +25,8 @@ import com.somesoft.fittracker.exception.ErrorResponse;
 import com.somesoft.fittracker.repository.ProductRepository;
 import com.somesoft.fittracker.response.ProductResponse;
 import java.time.LocalDateTime;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.StreamSupport;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -48,9 +51,12 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
         return ENDPOINT;
     }
 
+    private UUID id;
+
     @BeforeEach
     void beforeEach() {
         productRepository.deleteAll();
+        id = productRepository.save(product()).getId();
     }
 
     @Nested
@@ -63,14 +69,11 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
 
             var response = makeRequestWithBody(POST, productRequest(), CREATED, ProductResponse.class);
 
-            assertThat(response).usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedResponse);
+            assertEqualRecursiveIgnoring(response, expectedResponse, "id");
             var allProducts = productRepository.findAll();
-            assertThat(allProducts).hasSize(1);
-            assertThat(allProducts.iterator().next()).usingRecursiveComparison()
-                .ignoringFields("id", "updatedAt")
-                .isEqualTo(expectedProduct);
+            assertThat(allProducts).hasSize(2);
+            assertEqualRecursiveIgnoring(allProducts.iterator().next(), expectedProduct, "id", "updatedAt");
         }
-
 
     }
 
@@ -78,18 +81,18 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
     class Get {
 
         @Test
-        void givenValidGetRequestWithExistingId_shouldReturnProduct() throws Exception {
-            productRepository.save(product());
+        void givenGetRequestWithExistingIdAndActiveTrue_shouldReturnActiveProduct() throws Exception {
+            makeRequestWithBodyAndPathVariable(id.toString(), PUT, productRequestWithKcal(300), OK,
+                ProductResponse.class);
 
-            UUID productUuid = productRepository.findAll().iterator().next().getId();
-            var expectedResponse = productResponse();
-            var response = makeRequest(ENDPOINT + "/" + productUuid, GET, OK, ProductResponse.class);
+            var expectedResponse = productResponseWithKcal(300);
+            var response = makeRequest(ENDPOINT + "/" + id, GET, OK, ProductResponse.class);
 
-            assertThat(response).usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedResponse);
+            assertEqualRecursiveIgnoring(response, expectedResponse, "id");
         }
 
         @Test
-        void givenValidGetRequestWithNonexistentId_shouldReturnError() throws Exception {
+        void givenGetRequestWithNonexistentId_shouldReturnError() throws Exception {
             var expectedResponse = ErrorResponse.withMessage(
                 "Product not found for id: 56d546e0-9fc7-4477-b418-524eee411524");
 
@@ -99,18 +102,22 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
             assertThat(response).isEqualTo(expectedResponse);
         }
 
+        @Test
+        void givenGetRequestWithExistingIdAndActiveFalse_shouldReturnError() throws Exception {
+            makeRequest(ENDPOINT + "/" + id, DELETE, NO_CONTENT);
+            var expectedResponse = ErrorResponse.withMessage("Product not found for id: " + id);
+
+            var response = makeRequest(ENDPOINT + "/" + id, GET, NOT_FOUND,
+                ErrorResponse.class);
+
+            assertThat(productRepository.findAll().iterator().next().getId()).isEqualTo(id);
+            assertThat(response).isEqualTo(expectedResponse);
+        }
 
     }
 
     @Nested
     class Put {
-
-        private UUID id;
-
-        @BeforeEach
-        void beforeEach() {
-            id = productRepository.save(product()).getId();
-        }
 
         @Test
         void givenValidPutRequest_shouldUpdateAndReturnProductResponse() throws Exception {
@@ -119,7 +126,7 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
             var response = makeRequestWithBodyAndPathVariable(id.toString(), PUT, productRequestWithKcal(300), OK,
                 ProductResponse.class);
 
-            assertThat(response).usingRecursiveComparison().ignoringFields("id").isEqualTo(expectedResponse);
+            assertEqualRecursiveIgnoring(response, expectedResponse, "id");
             assertThat(response.id()).isEqualTo(id);
             var dbProducts = productRepository.findAll();
             assertThat(dbProducts).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt")
@@ -137,8 +144,8 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
                 "Product not found for id: d854127f-bc8d-4230-bcd2-aeae44760dda");
 
             var response = makeRequestWithBodyAndPathVariable("d854127f-bc8d-4230-bcd2-aeae44760dda", PUT,
-                productRequestWithKcal(300), NOT_FOUND,
-                ErrorResponse.class);
+
+                productRequestWithKcal(300), NOT_FOUND, ErrorResponse.class);
 
             assertThat(response).isEqualTo(expectedResponse);
         }
@@ -155,10 +162,41 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
         }
     }
 
-    private Product findLatestInsertedProduct(Iterable<Product> products) {
-        return StreamSupport.stream(products.spliterator(), false)
-            .max(Comparator.comparing(Product::getUpdatedAt))
-            .orElseThrow(() -> new RuntimeException("Products are empty"));
+    @Nested
+    class Delete {
+
+        @Test
+        void givenValidDeleteRequest_shouldSetActiveToFalseAndReturnNoContent() throws Exception {
+            var response = makeRequest(ENDPOINT + "/" + id, DELETE, NO_CONTENT);
+            var expectedProduct = productWithActive(false);
+
+            assertThat(response).isEmpty();
+            var dbProducts = productRepository.findAll();
+            assertThat(dbProducts).hasSize(1);
+            assertEqualRecursiveIgnoring(dbProducts.iterator().next(), expectedProduct, "id", "updatedAt");
+        }
+
+        @Test
+        void givenDeleteRequestWithNonexistentId_shouldReturnError() throws Exception {
+            var response = makeRequest(ENDPOINT + "/fed4b756-cfc3-4d99-910f-5f27faad59fe", DELETE, NOT_FOUND,
+                ErrorResponse.class);
+            var expectedResponse = ErrorResponse.withMessage(
+                "Product not found for id: fed4b756-cfc3-4d99-910f-5f27faad59fe");
+
+            assertThat(response).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void givenDeleteRequestForInactiveProduct_shouldReturnError() throws Exception {
+            productRepository.save(product());
+
+            makeRequest(ENDPOINT + "/" + id, DELETE, NO_CONTENT);
+            var response = makeRequest(ENDPOINT + "/" + id, DELETE, NOT_FOUND,
+                ErrorResponse.class);
+            var expectedResponse = ErrorResponse.withMessage("Product not found for id: " + id);
+
+            assertThat(response).isEqualTo(expectedResponse);
+        }
     }
 
     private <T> T makeRequestWithBodyAndPathVariable(String pathVariable, HttpMethod httpMethod, Object requestBody,

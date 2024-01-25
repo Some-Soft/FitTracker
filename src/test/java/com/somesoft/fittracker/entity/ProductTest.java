@@ -67,6 +67,7 @@ class ProductTest {
 
         private LocalDateTime randomTimestamp() {
             return LocalDateTime.now().plusSeconds(random.nextInt());
+
         }
     }
 

@@ -108,7 +108,6 @@ abstract class BaseIntegrationTest {
         return mapper.readValue(responseString, responseClass);
     }
 
-
     private String performRequest(String endpoint, HttpMethod httpMethod, HttpStatus expectedStatus) throws Exception {
         return mockMvc.perform(request(httpMethod, create(endpoint))
                 .header(AUTHORIZATION_HEADER_NAME, AUTHORIZATION_HEADER_VALUE_PREFIX + TOKEN))

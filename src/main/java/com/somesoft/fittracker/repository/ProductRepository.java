@@ -10,8 +10,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface ProductRepository extends CrudRepository<Product, ProductId> {
 
-    Optional<Product> findByIdAndUserId(UUID id, UUID userId);
-
     Optional<Product> findByIdAndUserIdAndActiveIsTrue(UUID id, UUID userId);
 
     @Query(value = "INSERT INTO fittracker.products (id, version, name, kcal, carbs, protein, fat, user_id) " +

@@ -1,5 +1,6 @@
 package com.somesoft.fittracker.response;
 
+
 import static com.somesoft.fittracker.dataprovider.Entity.weight;
 import static com.somesoft.fittracker.dataprovider.Response.weightResponse;
 import static org.assertj.core.api.Assertions.assertThat;
