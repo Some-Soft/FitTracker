@@ -1,6 +1,7 @@
 package com.somesoft.fittracker.service;
 
 import com.somesoft.fittracker.entity.Product;
+import com.somesoft.fittracker.exception.ProductAlreadyExistsException;
 import com.somesoft.fittracker.exception.ProductNotFoundException;
 import com.somesoft.fittracker.exception.ProductNotUpdatedException;
 import com.somesoft.fittracker.exception.ProductPersistenceException;
@@ -26,8 +27,11 @@ public class ProductService {
     public ProductResponse save(ProductRequest productRequest) {
         Product product = productRequest.toProduct();
         product.setUserId(SecurityHelper.getUserId());
-        Product dbProduct = productRepository.save(product);
+        if (isDuplicateProduct(product)) {
+            throw new ProductAlreadyExistsException(product.getName());
+        }
 
+        Product dbProduct = productRepository.save(product);
         return ProductResponse.fromProduct(dbProduct);
     }
 
@@ -43,16 +47,20 @@ public class ProductService {
                 id, SecurityHelper.getUserId())
             .orElseThrow(() -> new ProductNotFoundException(id));
 
-        Product updatedProduct = productRequest.toProduct();
+        Product product = productRequest.toProduct();
 
-        if (dbProduct.hasEqualData(updatedProduct)) {
+        if (dbProduct.hasEqualData(product)) {
             throw new ProductNotUpdatedException();
+        }
+
+        if (isDuplicateProduct(id, product)) {
+            throw new ProductAlreadyExistsException(product.getName());
         }
 
         dbProduct.setActive(false);
         productRepository.save(dbProduct);
 
-        return saveUpdatedProduct(dbProduct, updatedProduct);
+        return saveUpdatedProduct(dbProduct, product);
     }
 
     public void delete(UUID id) {
@@ -73,6 +81,17 @@ public class ProductService {
         return productRepository.saveNew(updatedProduct)
             .map(ProductResponse::fromProduct)
             .orElseThrow(() -> new ProductPersistenceException(updatedProduct));
+    }
+
+    private boolean isDuplicateProduct(Product product) {
+        return productRepository.findByNameAndUserIdAndActiveIsTrue(product.getName(), product.getUserId()).isPresent();
+    }
+
+    private boolean isDuplicateProduct(UUID id, Product product) {
+        return productRepository.findByNameAndUserIdAndActiveIsTrue(product.getName(), SecurityHelper.getUserId())
+            .map(Product::getId)
+            .filter(foundProductId -> foundProductId.equals(id))
+            .isEmpty();
     }
 
 }
