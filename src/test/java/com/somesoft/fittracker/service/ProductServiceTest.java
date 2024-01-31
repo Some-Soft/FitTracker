@@ -3,6 +3,7 @@ package com.somesoft.fittracker.service;
 import static com.somesoft.fittracker.dataprovider.Entity.product;
 import static com.somesoft.fittracker.dataprovider.Entity.productWithActive;
 import static com.somesoft.fittracker.dataprovider.Entity.productWithKcal;
+import static com.somesoft.fittracker.dataprovider.Entity.productWithUUID;
 import static com.somesoft.fittracker.dataprovider.Request.productRequest;
 import static com.somesoft.fittracker.dataprovider.Request.productRequestWithKcal;
 import static com.somesoft.fittracker.dataprovider.Response.productResponse;
@@ -19,6 +20,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import com.somesoft.fittracker.entity.Product;
+import com.somesoft.fittracker.exception.ProductAlreadyExistsException;
 import com.somesoft.fittracker.exception.ProductNotFoundException;
 import com.somesoft.fittracker.exception.ProductNotUpdatedException;
 import com.somesoft.fittracker.exception.ProductPersistenceException;
@@ -93,16 +95,33 @@ class ProductServiceTest {
         }
     }
 
-    @Test
-    void save_givenProductRequest_shouldSaveAndReturnProductResponse() {
-        when(productRepository.save(any())).thenReturn(product());
+    @Nested
+    class Save {
 
-        var result = productService.save(productRequest());
+        @Test
+        void givenProductRequestWithNonExistentName_shouldSaveAndReturnProductResponse() {
+            when(productRepository.save(any())).thenReturn(product());
+            when(productRepository.findByNameAndUserIdAndActiveIsTrue(any(), any())).thenReturn(empty());
 
-        assertThat(result).isEqualTo(productResponse());
-        verify(productRepository).save(productCaptor.capture());
+            var result = productService.save(productRequest());
 
-        assertEqualRecursiveIgnoring(productCaptor.getValue(), product(), "id", "updatedAt", "active");
+            assertThat(result).isEqualTo(productResponse());
+            verify(productRepository).findByNameAndUserIdAndActiveIsTrue("bread", TEST_USER_UUID);
+            verify(productRepository).save(productCaptor.capture());
+
+            assertEqualRecursiveIgnoring(productCaptor.getValue(), product(), "id", "updatedAt", "active");
+        }
+
+        @Test
+        void givenProductRequestWithNameAlreadyInUse_shouldThrowProductAlreadyExistsException() {
+            when(productRepository.findByNameAndUserIdAndActiveIsTrue(any(), any())).thenReturn(of(product()));
+
+            assertThatThrownBy(() -> productService.save(productRequest())).
+                isInstanceOf(ProductAlreadyExistsException.class)
+                .hasMessageContaining("Product with name: bread, already exists");
+            verify(productRepository).findByNameAndUserIdAndActiveIsTrue("bread", TEST_USER_UUID);
+        }
+
     }
 
     @Nested
@@ -112,6 +131,7 @@ class ProductServiceTest {
         void givenProductFound_shouldUpdateAndReturnUpdatedProduct() {
             when(productRepository.findByIdAndUserIdAndActiveIsTrue(any(), any())).thenReturn(of(product()));
             when(productRepository.saveNew(any())).thenReturn(of(productWithKcal(300)));
+            when(productRepository.findByNameAndUserIdAndActiveIsTrue(any(), any())).thenReturn(of(product()));
 
             var response = productService.update(TEST_PRODUCT_UUID, productRequestWithKcal(300));
             var expectedResponse = productResponseWithKcal(300);
@@ -121,10 +141,27 @@ class ProductServiceTest {
 
             assertThat(response).isEqualTo(expectedResponse);
             verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
+            verify(productRepository).findByNameAndUserIdAndActiveIsTrue("bread", TEST_USER_UUID);
             verify(productRepository).save(productCaptor.capture());
             assertEqualRecursiveIgnoring(productCaptor.getValue(), productWithActive(false));
             verify(productRepository).saveNew(productCaptor.capture());
             assertEqualRecursiveIgnoring(productCaptor.getValue(), newProduct, "updatedAt");
+        }
+
+        @Test
+        void givenProductRequestWithNameUsedByAnotherProduct_shouldThrowProductAlreadyExistsException() {
+            when(productRepository.findByIdAndUserIdAndActiveIsTrue(any(), any())).thenReturn(of(product()));
+            Product duplicateProduct = productWithUUID(UUID.fromString("807fe600-1b12-4ce7-8694-71eb34f091db"));
+            duplicateProduct.setKcal(301);
+            when(productRepository.findByNameAndUserIdAndActiveIsTrue(any(), any())).thenReturn(
+                of(duplicateProduct));
+
+            assertThatThrownBy(() -> productService.update(TEST_PRODUCT_UUID, productRequestWithKcal(300)))
+                .isInstanceOf(ProductAlreadyExistsException.class)
+                .hasMessageContaining("Product with name: bread, already exists");
+
+            verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
+            verify(productRepository).findByNameAndUserIdAndActiveIsTrue("bread", TEST_USER_UUID);
         }
 
         @Test
@@ -155,6 +192,7 @@ class ProductServiceTest {
         void givenEmptyEcho_shouldThrowTransactionSystemException() {
             when(productRepository.findByIdAndUserIdAndActiveIsTrue(any(), any()))
                 .thenReturn(of(product()));
+            when(productRepository.findByNameAndUserIdAndActiveIsTrue(any(), any())).thenReturn(of(product()));
             when(productRepository.saveNew(any())).thenReturn(empty());
 
             assertThatThrownBy(() -> productService.update(TEST_PRODUCT_UUID, productRequestWithKcal(300)))
@@ -164,6 +202,7 @@ class ProductServiceTest {
                         + "kcal=300, carbs=58, protein=8, fat=0, userId=948cc727-68e5-455c-ab6d-942e585bde0d, updatedAt=null, active=false}");
 
             verify(productRepository).findByIdAndUserIdAndActiveIsTrue(TEST_PRODUCT_UUID, TEST_USER_UUID);
+            verify(productRepository).findByNameAndUserIdAndActiveIsTrue("bread", TEST_USER_UUID);
             verify(productRepository).save(any());
             verify(productRepository).saveNew(any());
         }

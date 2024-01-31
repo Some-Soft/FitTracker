@@ -5,8 +5,9 @@ import static com.somesoft.fittracker.dataprovider.Entity.product;
 import static com.somesoft.fittracker.dataprovider.Entity.productWithActive;
 import static com.somesoft.fittracker.dataprovider.Request.productRequest;
 import static com.somesoft.fittracker.dataprovider.Request.productRequestWithKcal;
-import static com.somesoft.fittracker.dataprovider.Response.productResponse;
+import static com.somesoft.fittracker.dataprovider.Request.productRequestWithName;
 import static com.somesoft.fittracker.dataprovider.Response.productResponseWithKcal;
+import static com.somesoft.fittracker.dataprovider.Response.productResponseWithName;
 import static com.somesoft.fittracker.dataprovider.TestHelper.assertEqualRecursiveIgnoring;
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -64,15 +65,32 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidPostRequest_shouldSaveAndReturnProduct() throws Exception {
-            var expectedResponse = productResponse();
-            var expectedProduct = product();
+            var expectedResponse = productResponseWithName("apple");
 
-            var response = makeRequestWithBody(POST, productRequest(), CREATED, ProductResponse.class);
+            var response = makeRequestWithBody(POST, productRequestWithName("apple"), CREATED, ProductResponse.class);
 
             assertEqualRecursiveIgnoring(response, expectedResponse, "id");
             var allProducts = productRepository.findAll();
-            assertThat(allProducts).hasSize(2);
-            assertEqualRecursiveIgnoring(allProducts.iterator().next(), expectedProduct, "id", "updatedAt");
+
+            assertThat(allProducts).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt")
+                .containsExactlyInAnyOrder(
+                    new Product(response.id(), 0, "apple", 245, 58, 8, 0,
+                        UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"), null, true),
+                    new Product(id, 0, "bread", 245, 58, 8, 0,
+                        UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"),
+                        LocalDateTime.of(2023, 10, 10, 4, 20), true));
+
+        }
+
+        @Test
+        void givenValidPostRequestWithNameAlreadyInUse_shouldReturnError() throws Exception {
+            var expectedResponse = ErrorResponse.withMessage("Product with name: bread, already exists");
+
+            var response = makeRequestWithBody(POST, productRequestWithKcal(300), BAD_REQUEST, ErrorResponse.class);
+
+            assertThat(response).isEqualTo(expectedResponse);
+            var allProducts = productRepository.findAll();
+            assertThat(allProducts).hasSize(1);
         }
 
     }
@@ -128,8 +146,8 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
 
             assertEqualRecursiveIgnoring(response, expectedResponse, "id");
             assertThat(response.id()).isEqualTo(id);
-            var dbProducts = productRepository.findAll();
-            assertThat(dbProducts).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt")
+            var allProducts = productRepository.findAll();
+            assertThat(allProducts).usingRecursiveFieldByFieldElementComparatorIgnoringFields("updatedAt")
                 .containsExactlyInAnyOrder(
                     new Product(id, 1, "bread", 300, 58, 8, 0,
                         UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"), null, true),
@@ -152,12 +170,27 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
 
         @Test
         void givenValidPutRequestWithNoChanges_shouldReturnError() throws Exception {
-            String id = productRepository.findAll().iterator().next().getId().toString();
+            String idString = id.toString();
             var expectedResponse = ErrorResponse.withMessage("Updated product must differ");
 
-            var response = makeRequestWithBodyAndPathVariable(id, PUT, productRequest(), BAD_REQUEST,
+            var response = makeRequestWithBodyAndPathVariable(idString, PUT, productRequest(), BAD_REQUEST,
                 ErrorResponse.class);
 
+            assertThat(response).isEqualTo(expectedResponse);
+        }
+
+        @Test
+        void givenValidPutRequestWithNameUsedByAnotherProduct_shouldReturnError() throws Exception {
+            String idString = id.toString();
+            makeRequestWithBody(POST, productRequestWithName("apple"), CREATED, ProductResponse.class);
+            var expectedResponse = ErrorResponse.withMessage("Product with name: apple, already exists");
+
+            var response = makeRequestWithBodyAndPathVariable(idString, PUT, productRequestWithName("apple"),
+                BAD_REQUEST,
+                ErrorResponse.class);
+
+            var allProducts = productRepository.findAll();
+            assertThat(allProducts).hasSize(2);
             assertThat(response).isEqualTo(expectedResponse);
         }
     }
@@ -171,9 +204,9 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
             var expectedProduct = productWithActive(false);
 
             assertThat(response).isEmpty();
-            var dbProducts = productRepository.findAll();
-            assertThat(dbProducts).hasSize(1);
-            assertEqualRecursiveIgnoring(dbProducts.iterator().next(), expectedProduct, "id", "updatedAt");
+            var allProducts = productRepository.findAll();
+            assertThat(allProducts).hasSize(1);
+            assertEqualRecursiveIgnoring(allProducts.iterator().next(), expectedProduct, "id", "updatedAt");
         }
 
         @Test
@@ -204,5 +237,6 @@ public class ProductControllerIntegrationTest extends BaseIntegrationTest {
         return makeRequestWithBody(format("%s/%s", getEndpoint(), pathVariable), httpMethod, requestBody,
             expectedStatus, responseClass);
     }
+
 
 }

@@ -80,4 +80,10 @@ public class Entity {
             UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"),
             LocalDateTime.of(2023, 10, 10, 4, 20), active);
     }
+
+    public static Product productWithUUID(UUID uuid) {
+        return new Product(uuid, 0, "bread", 245, 58, 8, 0,
+            UUID.fromString("948cc727-68e5-455c-ab6d-942e585bde0d"),
+            LocalDateTime.of(2023, 10, 10, 4, 20), true);
+    }
 }

@@ -39,4 +39,9 @@ public class Response {
         return new ProductResponse(UUID.fromString("382cf280-8b7a-11ee-b9d1-0242ac120002"), "bread", kcal, 58, 8, 0);
     }
 
+    public static ProductResponse productResponseWithName(String name) {
+        return new ProductResponse(UUID.fromString("382cf280-8b7a-11ee-b9d1-0242ac120002"), name, 245, 58, 8, 0);
+    }
+
+
 }
