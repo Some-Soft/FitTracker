@@ -92,6 +92,18 @@ public class ProductControllerValidationTest {
     @Nested
     class Post {
 
+        @Test
+        void givenProductRequestWithNameLongerThan64chars_shouldReturnErrorMessage() throws Exception {
+            mockMvc
+                .perform(post(URI.create(ENDPOINT))
+                    .contentType(APPLICATION_JSON)
+                    .content(mapper.writeValueAsString(productRequestWithName("a".repeat(65)))))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(errorResponseString("name", "Product name is limited to 64 characters")));
+
+            verifyNoInteractions(productService);
+        }
+
         @ParameterizedTest
         @MethodSource("postRequestWithBlankNames")
         void givenProductRequestWithBlankName_shouldReturnErrorMessage(ProductRequest productRequest)

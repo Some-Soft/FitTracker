@@ -1,5 +1,5 @@
 databaseChangeLog:
   - include:
-      file: changelog.yml
+      file: common-changelog.yml
   - include:
       file: init.sql

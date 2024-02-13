@@ -36,7 +36,8 @@ services:
     image: 'liquibase/liquibase:4.23'
     container_name: 'liquibase'
     volumes:
-      - ./database/changelog.yml:/liquibase/changelog.yml
+      - ./database/common-changelog.yml:/liquibase/common-changelog.yml
+      - ./database/prod-changelog.yml:/liquibase/changelog.yml
       - ./database/scripts:/liquibase/scripts
       - ./database/liquibase.properties:/liquibase.properties
     depends_on:

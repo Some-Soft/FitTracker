@@ -1,0 +1,5 @@
+databaseChangeLog:
+  - include:
+      file: common-changelog.yml
+  - include:
+      file: scripts/006-FIT-54-create_user_and_fill_products_table_with_initial_data.sql
