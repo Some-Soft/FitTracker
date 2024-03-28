@@ -8,6 +8,9 @@ spring:
     url: jdbc:postgresql://${DB_HOST:localhost}:5432/fittracker
     password: password
     username: user
+  liquibase:
+    change-log: changelog.yml
+    contexts: default, dev
 
 security:
   jwt:
@@ -15,11 +18,11 @@ security:
     tokenExpirationPeriodMinutes: 60
 ---
 spring:
-  liquibase:
-    change-log: test-changelog.yml
   config:
     activate:
       on-profile: test
+  liquibase:
+    contexts: default, test
 security:
   jwt:
     secret: "KpQ2DTrUzvqMSkWPG4VAiBkib432jL5MtxyHcqhr5f9rmGwV1XctLGjPxdtLGPDEXkPUYVN7xxzwYsld"

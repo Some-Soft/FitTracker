@@ -1,11 +1,50 @@
 databaseChangeLog:
-  - include:
-      file: scripts/001-FIT-3-create_weights_table.sql
-  - include:
-      file: scripts/002-FIT-11-create_users_table.sql
-  - include:
-      file: scripts/003-FIT-23-update_weights_table_with_user_id_foreign_key.sql
-  - include:
-      file: scripts/004-FIT-30-create_products_table.sql
-  - include:
-      file: scripts/005-FIT-31-update_products_table_with_active_column.sql
+  - changeSet:
+      id: "001"
+      author: "auto"
+      context: "default"
+      changes:
+        - sqlFile:
+            path: "scripts/001-FIT-3-create_weights_table.sql"
+  - changeSet:
+      id: "002"
+      author: "auto"
+      context: "default"
+      changes:
+        - sqlFile:
+            path: "scripts/002-FIT-11-create_users_table.sql"
+  - changeSet:
+      id: "003"
+      author: "auto"
+      context: "default"
+      changes:
+        - sqlFile:
+            path: "scripts/003-FIT-23-update_weights_table_with_user_id_foreign_key.sql"
+  - changeSet:
+      id: "004"
+      author: "auto"
+      context: "default"
+      changes:
+        - sqlFile:
+            path: "scripts/004-FIT-30-create_products_table.sql"
+  - changeSet:
+      id: "005"
+      author: "auto"
+      context: "default"
+      changes:
+        - sqlFile:
+            path: "scripts/005-FIT-31-update_products_table_with_active_column.sql"
+  - changeSet:
+      id: "006"
+      author: "auto"
+      context: "dev"
+      changes:
+        - sqlFile:
+            path: "scripts/006-FIT-54-create_user_and_fill_products_table_with_initial_data.sql"
+  - changeSet:
+      id: "007"
+      author: "auto"
+      context: "test"
+      changes:
+        - sqlFile:
+            path: "scripts/007-create_mock_user.sql"

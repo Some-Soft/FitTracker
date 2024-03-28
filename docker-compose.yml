@@ -37,12 +37,14 @@ services:
     container_name: 'liquibase'
     volumes:
       - ./database/changelog.yml:/liquibase/changelog.yml
+      - ./src/test/resources:/liquibase/test-resources
       - ./database/scripts:/liquibase/scripts
       - ./database/liquibase.properties:/liquibase.properties
     depends_on:
       - database
     command:
       - '--defaults-file=/liquibase.properties'
+      - '--contexts=default,dev'
       - 'update'
 networks:
   default:

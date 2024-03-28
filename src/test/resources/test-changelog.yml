@@ -1,5 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: changelog.yml
-  - include:
-      file: init.sql

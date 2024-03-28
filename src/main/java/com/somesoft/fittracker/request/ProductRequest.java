@@ -4,9 +4,11 @@ import com.somesoft.fittracker.entity.Product;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import org.hibernate.validator.constraints.Length;
 
 public record ProductRequest(
     @NotBlank(message = "Product name must not be blank")
+    @Length(max = 64, message = "Product name is limited to 64 characters")
     String name,
     @Max(value = 9999, message = "Cannot exceed 9999")
     @Min(value = 0, message = "Cannot be less than 0")
